@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Guru Ganti SKMT</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
-    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 
     <style>
         body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -20,10 +18,19 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+        .animate-zoom-in { animation: zoomIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        select { appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+        .editable-select { background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; padding-right: 1.5rem; }
     </style>
 </head>
 <body>
     <div id="root"></div>
+
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
@@ -54,7 +61,7 @@
 
 
         const TEACHERS = [
-            "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NEEZA BINTI ZAKARIA",
+            "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NURLEEZA BINTI ZAKARIA",
             "MOHD FAISAL BIN HARUN", "ABD GHAFAR BIN MAT RIPPIN", "ABDUL RAHMAN BIN MOHD DIN",
             "AINI LIZA BINTI LIMAT", "AMIDAH BINTI SULONG", "ANIDA BINTI SULONG", "ANUAR BIN JUSOH",
             "AZMI BADIUZZAMAN BIN HASHIM", "AZMI BIN ABDULLAH", "AZUWANI BINTI AWANG",
@@ -126,7 +133,7 @@
             if (!name) return false;
             const n = name.toUpperCase();
             return n.includes('NOR AZIAH BINTI MUSTAFA') || 
-                   n.includes('UMMY NEEZA BINTI ZAKARIA') || 
+                   n.includes('UMMY NURLEEZA BINTI ZAKARIA') || 
                    n.includes('MOHD FAISAL BIN HARUN');
         };
         
@@ -175,18 +182,19 @@
 
 
         const checkRestRule = (grid, p, allowStraightRelief = true) => {
-            if (allowStraightRelief) return false;
+    if (allowStraightRelief) return false;
 
-            const hasDuty = (period) => grid[period] && grid[period].trim() !== '';
-            if (p > 1 && p < 11 && hasDuty(p - 1) && hasDuty(p + 1)) return true;
-            if (p > 2 && hasDuty(p - 1) && hasDuty(p - 2)) return true;
-            if (p < 10 && hasDuty(p + 1) && hasDuty(p + 2)) return true;
-            return false;
-        };
+
+    const hasDuty = (period) => grid[period] && grid[period].trim() !== '';
+    if (p > 1 && p < 11 && hasDuty(p - 1) && hasDuty(p + 1)) return true;
+    if (p > 2 && hasDuty(p - 1) && hasDuty(p - 2)) return true;
+    if (p < 10 && hasDuty(p + 1) && hasDuty(p + 2)) return true;
+    return false;
+};
 
 
         const sameBaseClass = (a, b) => {
-             return getBaseClass(a) === getBaseClass(b);
+              return getBaseClass(a) === getBaseClass(b);
         };
 
 
@@ -210,17 +218,21 @@
             
             const [pModal, setPModal] = useState({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
             const [cModal, setCModal] = useState({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] }); 
-            const [app, setApp] = useState('https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec');
+            const [appUrl, setAppUrl] = useState('https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec');
             const [urlModal, setUrlModal] = useState({ isOpen: false, action: null, temp: '' });
             const [loadingCloud, setLoadingCloud] = useState({ drive: false, sheet: false });
             const [showMaster, setShowMaster] = useState(false);
             const [showStats, setShowStats] = useState(false);
-            const [settings, setSettings] = useState({
-                allowStraightRelief: true,
-                limitPK: true,
-                allowPemulihanEmergency: false,
-                allowPullCoTeacher: true
-            });
+const [settings, setSettings] = useState({
+    allowStraightRelief: true,
+    limitPK: true,
+    allowPemulihanEmergency: false,
+    allowPullCoTeacher: true
+});
+
+
+
+
 
 
             useEffect(() => {
@@ -231,6 +243,11 @@
                     const sRec = localStorage.getItem('skmt_records_master_v8');
                     if (sRec) setRecords(JSON.parse(sRec));
                 } catch(e) { console.error("Ralat load rekod:", e); }
+
+
+                const sUrl = localStorage.getItem('skmt_url');
+                if (sUrl) setAppUrl(sUrl);
+
 
                 let tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
                 setDate(tmr.toISOString().split('T')[0]);
@@ -258,19 +275,18 @@
                 if (e.target.value) setDay(['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'][new Date(e.target.value).getDay()]);
                 else setDay('');
             };
-            
-            const hydrateAbsentTeachers = (list) => {
-                return list.map(a => {
-                    const master = teachers.find(t => t.id === a.id) || teachers.find(t => t.name === a.name);
-                    return {
-                        ...(master || {}),
-                        ...a,
-                        id: master?.id || a.id,
-                        name: master?.name || a.name,
-                        gridSchedule: master?.gridSchedule || a.gridSchedule || emptyGrid()
-                    };
-                });
-            };
+        const hydrateAbsentTeachers = (list) => {
+    return list.map(a => {
+        const master = teachers.find(t => t.id === a.id) || teachers.find(t => t.name === a.name);
+        return {
+            ...(master || {}),
+            ...a,
+            id: master?.id || a.id,
+            name: master?.name || a.name,
+            gridSchedule: master?.gridSchedule || a.gridSchedule || emptyGrid()
+        };
+    });
+};
 
 
             const toggleAbsent = (t) => {
@@ -332,7 +348,8 @@
                 setCModal({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] });
             };
 
-const removeClosedClass = (id) => {
+
+            const removeClosedClass = (id) => {
                 setClosedClasses(closedClasses.filter(c => c.id !== id));
             };
 
@@ -367,7 +384,7 @@ const removeClosedClass = (id) => {
                         let cls = grid[p];
                         if (cls && cls.trim() !== '') {
                             let bClass = getBaseClass(cls);
-                            let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
+                            let isClosed = closedClasses.some(cc => sameBaseClass(bClass,   cc.class) && p >= cc.start && p <= cc.end);
                             if (isClosed) {
                                 grid[p] = ""; 
                             }
@@ -388,15 +405,17 @@ const removeClosedClass = (id) => {
 
 
                 const nRel = [];
-                const handled = {};
-                let pToCover = [];
+const handled = {};
+let pToCover = [];
 
 
-                const existingReliefMap = {};
-                reliefList.forEach(r => {
-                    const key = `${r.absentName}_${r.period}_${getBaseClass(r.class)}`;
-                    existingReliefMap[key] = r;
-                });
+const existingReliefMap = {};
+reliefList.forEach(r => {
+    const key = `${r.absentName}_${r.period}_${getBaseClass(r.class)}`;
+    existingReliefMap[key] = r;
+});
+
+
 
 
                 if (isRecalc) {
@@ -404,17 +423,21 @@ const removeClosedClass = (id) => {
                         abs: absentTeachers.find(a => a.name === r.absentName) || { id: Date.now(), name: r.absentName },
                         p: parseInt(r.period), cls: r.class, base: getBaseClass(r.class), time: r.time
                     })).filter(item => {
-                        return !closedClasses.some(cc => sameBaseClass(item.base, cc.class) && item.p >= cc.start && item.p <= cc.end);
+                        return !closedClasses.some(cc => sameBaseClass(item.base, cc.class)
+
+
+ && item.p >= cc.start && item.p <= cc.end);
                     });
                 } else {
                     absentTeachers.forEach(abs => {
                         P.forEach(p => {
                             const masterAbs = teachers.find(t => t.id === abs.id) || teachers.find(t => t.name === abs.name);
-                            let cls = (abs.gridSchedule || masterAbs?.gridSchedule)?.[day]?.[p];
+let cls = (abs.gridSchedule || masterAbs?.gridSchedule)?.[day]?.[p];
                             if (cls?.trim() && (abs.isFull || abs.periods.includes(p))) {
                                 const bClass = getBaseClass(cls);
                                 
                                 let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
+
 
                                 if (isClosed) return;
                                 
@@ -433,66 +456,72 @@ const removeClosedClass = (id) => {
                 pToCover.forEach(i => {
                     const key = `${i.p}_${i.base}`;
                     if (handled[key]) return; 
-                    const existingKey = `${i.abs.name}_${i.p}_${i.base}`;
-                    const existingRelief = existingReliefMap[existingKey];
+const existingKey = `${i.abs.name}_${i.p}_${i.base}`;
+const existingRelief = existingReliefMap[existingKey];
 
 
-                    if (!isRecalc && existingRelief) {
-                        nRel.push({
-                            ...existingRelief,
-                            class: i.cls,
-                            period: i.p.toString(),
-                            pNum: i.p,
-                            time: i.time
-                        });
-
-                        const keptSub = cands.find(c => c.name === existingRelief.substituteName);
-                        if (keptSub) {
-                            keptSub.relCount++;
-                            keptSub.grid[i.p] = "R";
-                        }
-
-                        handled[key] = true;
-                        return;
-                    }
+if (!isRecalc && existingRelief) {
+    nRel.push({
+        ...existingRelief,
+        class: i.cls,
+        period: i.p.toString(),
+        pNum: i.p,
+        time: i.time
+    });
 
 
-                    const co = cands.filter(t => {
-                        if (t.id === i.abs.id) return false;
-                        if (isBusyWithProgram(t.name, i.p)) return false;
-                        return sameBaseClass(t.grid?.[i.p], i.base);
-                    });
+    const keptSub = cands.find(c => c.name === existingRelief.substituteName);
+    if (keptSub) {
+        keptSub.relCount++;
+        keptSub.grid[i.p] = "R";
+    }
 
 
-                    if (co.length > 0 && !settings.allowPullCoTeacher) {
-                        nRel.push({
-                            id: `${i.abs.id}-${i.p}-co-${Math.random()}`,
-                            absentName: i.abs.name,
-                            substituteName: `GABUNG: ${co.map(t => shortName(t.name)).join(', ')}`,
-                            class: i.cls,
-                            period: i.p.toString(),
-                            pNum: i.p,
-                            time: i.time
-                        });
-                        handled[key] = true;
-                        return;
-                    }
+    handled[key] = true;
+    return;
+}
+
+
+
+
+const co = cands.filter(t => {
+            if (t.id === i.abs.id) return false;
+    if (isBusyWithProgram(t.name, i.p)) return false;
+    return sameBaseClass(t.grid?.[i.p], i.base);
+});
+
+
+if (co.length > 0 && !settings.allowPullCoTeacher) {
+    nRel.push({
+        id: `${i.abs.id}-${i.p}-co-${Math.random()}`,
+        absentName: i.abs.name,
+        substituteName: `GABUNG: ${co.map(t => shortName(t.name)).join(', ')}`,
+        class: i.cls,
+        period: i.p.toString(),
+        pNum: i.p,
+        time: i.time
+    });
+    handled[key] = true;
+    return;
+}
 
 
                     let free = cands.filter(c => {
-                        if (c.grid[i.p]?.trim()) {
-                            if (!settings.allowPullCoTeacher) return false;
-                            if (c.grid[i.p] === "PROGRAM") return false;
+                       if (c.grid[i.p]?.trim()) {
+                  if (!settings.allowPullCoTeacher) return false;
+                    if (c.grid[i.p] === "PROGRAM") return false;
 
-                            const busyBase = getBaseClass(c.grid[i.p]);
-                            const hasCoTeacherCover = cands.some(other => {
-                                if (other.id === c.id) return false;
-                                if (other.grid?.[i.p] === "PROGRAM") return false;
-                                return sameBaseClass(other.grid?.[i.p], busyBase);
-                            });
 
-                            if (!hasCoTeacherCover) return false;
-                        }
+                    const busyBase = getBaseClass(c.grid[i.p]);
+                    const hasCoTeacherCover = cands.some(other => {
+                        if (other.id === c.id) return false;
+        if (other.grid?.[i.p] === "PROGRAM") return false;
+        return sameBaseClass(other.grid?.[i.p], busyBase);
+            });
+
+
+    if (!hasCoTeacherCover) return false;
+}
                         
                         const isAbs = absentTeachers.find(a => a.id === c.id);
                         if (isAbs && !isAbs.isFull && isAbs.periods.includes(i.p)) return false; 
@@ -502,7 +531,7 @@ const removeClosedClass = (id) => {
                         // SYARAT KETAT: GB dan PK
                         if (c.name.includes('ROHAIZA')) return false; 
                         if (settings.limitPK && IS_PK(c.name) && c.relCount >= 2) return false;
-                        if (!settings.allowPemulihanEmergency && c.isPemulihan) return false;
+                if (!settings.allowPemulihanEmergency && c.isPemulihan) return false;
                         
                         return true;
                     });
@@ -512,11 +541,16 @@ const removeClosedClass = (id) => {
                             let penA = 0, penB = 0;
                             let totA = a.clsCount + a.relCount, totB = b.clsCount + b.relCount;
 
-                            if (a.grid[i.p]?.trim() && a.grid[i.p] !== "PROGRAM") penA += 2500;
-                            if (b.grid[i.p]?.trim() && b.grid[i.p] !== "PROGRAM") penB += 2500;
-                            if (a.isPemulihan) penA += settings.allowPemulihanEmergency ? 10000 : 999999;
-                            if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
 
+    if (a.grid[i.p]?.trim() && a.grid[i.p] !== "PROGRAM") penA += 2500;
+    if (b.grid[i.p]?.trim() && b.grid[i.p] !== "PROGRAM") penB += 2500;
+                            if (a.isPemulihan) penA += settings.allowPemulihanEmergency ? 10000 : 999999;
+if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
+
+
+
+
+                            
                             // SEMAK REKOD SEMALAM: Paksa rehat hari ini jika dah penat semalam
                             const lastRec = records.length > 0 ? records[0] : null;
                             const aLast = lastRec ? lastRec.reliefList.filter(r => r.substituteName === a.name).length : 0;
@@ -542,9 +576,7 @@ const removeClosedClass = (id) => {
                             penA += (a.count||0) * 500 + totA;
                             penB += (b.count||0) * 500 + totB;
                             
-                            let skorA = totA + penA;
-                            let skorB = totB + penB;
-                            return skorA - skorB; // Mengutamakan guru yang mempunyai jumlah skor/beban terendah
+                            return penA - penB;
                         });
                         
                         const sub = free[0];
@@ -599,7 +631,8 @@ const removeClosedClass = (id) => {
                 setIsProcessing(false);
             };
 
-const fetchHist = async () => {
+
+            const fetchHist = async () => {
                 setIsProcessing(true);
                 try {
                     const rows = await fetchCSV('DATA');
@@ -707,79 +740,85 @@ const fetchHist = async () => {
 
 
             const doCloud = async (act, u) => {
-                const url = u || app; // Pembetulan appUrl -> app
+                const url = u || appUrl;
                 setLoadingCloud(p => ({...p, [act]: true}));
                 try {
                     const pay = act === 'drive'
-                    ? {
-                        action: "uploadPdf",
-                        filename: `Relief_SKMT_${date}.pdf`,
-                        base64: mkPdf().output('datauristring').split(',')[1],
-                        folderId: "1Aa9RGZX35kbFj-1dnLrR4gynQrHLidj-"
-                    }
-                    : {
-                        action: "replaceDataByDate",
-                        sheetId: SHEET_ID,
-                        date: date,
-                        records: sRelief.map(r => [date, day, r.absentName, r.substituteName, r.class, r.period])
-                    };
+    ? {
+        action: "uploadPdf",
+        filename: `Relief_SKMT_${date}.pdf`,
+        base64: mkPdf().output('datauristring').split(',')[1],
+        folderId: "1Aa9RGZX35kbFj-1dnLrR4gynQrHLidj-"
+    }
+    : {
+        action: "replaceDataByDate",
+        sheetId: SHEET_ID,
+        date: date,
+        records: sRelief.map(r => [date, day, r.absentName, r.substituteName, r.class, r.period])
+    };
 
-                    if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk direkod.");
+
+if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk direkod.");
                     
                     const res = await fetch(url, { method: 'POST', body: JSON.stringify(pay) });
                     const ret = await res.json();
                     if(ret.success) alert(`Berjaya ke ${act==='drive'?'Drive':'Sheets'}!`); else throw new Error(ret.error);
-                } catch(e) { alert("Gagal: " + e.message); if(e.message.includes('fetch')) { setApp(''); localStorage.removeItem('skmt_url'); } }
+                } catch(e) { alert("Gagal: " + e.message); if(e.message.includes('fetch')) { setAppUrl(''); localStorage.removeItem('skmt_url'); } }
                 setLoadingCloud(p => ({...p, [act]: false}));
             };
 
 
-            const cloudClick = (act) => app ? doCloud(act, app) : setUrlModal({ isOpen: true, action: act, temp: 'https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec' }); // Pembetulan appUrl -> app
+            const cloudClick = (act) => appUrl ? doCloud(act, appUrl) : setUrlModal({ isOpen: true, action: act, temp: 'https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec' });
             
             const submitUrl = () => {
                 if (!urlModal.temp) return alert("Sila letak URL");
-                setApp(urlModal.temp); localStorage.setItem('skmt_url', urlModal.temp); // Pembetulan appUrl -> app
+                setAppUrl(urlModal.temp); localStorage.setItem('skmt_url', urlModal.temp);
                 setUrlModal({ isOpen: false, action: null, temp: '' });
                 doCloud(urlModal.action, urlModal.temp);
             };
 
 
-            const handleSimpan = () => {
-                const oldRec = records.find(r => r.date === date);
+     const handleSimpan = () => {
+    const oldRec = records.find(r => r.date === date);
 
-                const upd = teachers.map(t => {
-                    const newRelCount = sRelief.filter(r => r.substituteName === t.name).length;
-                    const oldRelCount = oldRec ? oldRec.reliefList.filter(r => r.substituteName === t.name).length : 0;
 
-                    const newAbsCount = absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0;
-                    const oldAbsCount = oldRec ? oldRec.absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0 : 0;
+    const upd = teachers.map(t => {
+        const newRelCount = sRelief.filter(r => r.substituteName === t.name).length;
+        const oldRelCount = oldRec ? oldRec.reliefList.filter(r => r.substituteName === t.name).length : 0;
 
-                    return { 
-                        ...t, 
-                        count: (t.count || 0) + newRelCount - oldRelCount,
-                        totalRelief: (t.totalRelief || 0) + newRelCount - oldRelCount,
-                        totalAbsent: (t.totalAbsent || 0) + newAbsCount - oldAbsCount
-                    };
-                });
 
-                setTeachers(upd);
-                localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(upd));
-                
-                const nRec = { id: oldRec?.id || date + '-' + Date.now(), date, day, reliefList: sRelief, absentTeachers };
-                const uRec = [nRec, ...records.filter(r => r.date !== date)].slice(0, 10);
+        const newAbsCount = absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0;
+        const oldAbsCount = oldRec ? oldRec.absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0 : 0;
 
-                setRecords(uRec); 
-                localStorage.setItem('skmt_records_master_v8', JSON.stringify(uRec)); 
-                
-                setMsg(oldRec ? 'Rekod tarikh ini dikemas kini!' : 'Selesai disimpan!');
-                setTimeout(() => {
-                    setMsg('');
-                    setStep(1);
-                    setAbsentTeachers([]);
-                    setReliefList([]);
-                    setClosedClasses([]);
-                }, 3000);
-            };
+
+        return { 
+            ...t, 
+            count: (t.count || 0) + newRelCount - oldRelCount,
+            totalRelief: (t.totalRelief || 0) + newRelCount - oldRelCount,
+            totalAbsent: (t.totalAbsent || 0) + newAbsCount - oldAbsCount
+        };
+    });
+
+
+    setTeachers(upd);
+    localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(upd));
+    
+    const nRec = { id: oldRec?.id || date + '-' + Date.now(), date, day, reliefList: sRelief, absentTeachers };
+    const uRec = [nRec, ...records.filter(r => r.date !== date)].slice(0, 10);
+
+
+    setRecords(uRec); 
+    localStorage.setItem('skmt_records_master_v8', JSON.stringify(uRec)); 
+    
+    setMsg(oldRec ? 'Rekod tarikh ini dikemas kini!' : 'Selesai disimpan!');
+    setTimeout(() => {
+        setMsg('');
+        setStep(1);
+        setAbsentTeachers([]);
+        setReliefList([]);
+        setClosedClasses([]);
+    }, 3000);
+};
 
 
             const optSubs = (pNum, cName) => {
@@ -806,6 +845,7 @@ const fetchHist = async () => {
                                 let bClass = getBaseClass(cls);
                                 let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
 
+
                                 if (isClosed) tGrid[p] = ""; 
                             }
                             if (isBusyWithProgram(t.name, p)) {
@@ -813,39 +853,38 @@ const fetchHist = async () => {
                             }
                         });
                         
-                        if (tGrid[pNum]?.trim()) {
-                            if (!settings.allowPullCoTeacher) return false;
-                            if (tGrid[pNum] === "PROGRAM") return false;
+                       if (tGrid[pNum]?.trim()) {
+    if (!settings.allowPullCoTeacher) return false;
+    if (tGrid[pNum] === "PROGRAM") return false;
 
-                            const busyBase = getBaseClass(tGrid[pNum]);
-                            const hasCoTeacherCover = teachers.some(other => {
-                                if (other.id === t.id) return false;
 
-                                const isOtherAbs = absentTeachers.find(a => a.id === other.id);
-                                if (isOtherAbs && (isOtherAbs.isFull || isOtherAbs.periods.includes(pNum))) return false;
-                                if (isBusyWithProgram(other.name, pNum)) return false;
-                                if (isPraTeacher(other)) return false;
+    const busyBase = getBaseClass(tGrid[pNum]);
+    const hasCoTeacherCover = teachers.some(other => {
+        if (other.id === t.id) return false;
 
-                                // Semakan grid gandingan dengan mengambil kira penutupan kelas/program
-                                let oGrid = other.gridSchedule?.[day]?.[pNum];
-                                if (oGrid) {
-                                    let oBase = getBaseClass(oGrid);
-                                    let isClosed = closedClasses.some(cc => sameBaseClass(oBase, cc.class) && pNum >= cc.start && pNum <= cc.end);
-                                    if (isClosed) return false;
-                                    return sameBaseClass(oBase, busyBase);
-                                }
-                                return false;
-                            });
 
-                            if (!hasCoTeacherCover) return false;
-                        }
+        const isOtherAbs = absentTeachers.find(a => a.id === other.id);
+        if (isOtherAbs && (isOtherAbs.isFull || isOtherAbs.periods.includes(pNum))) return false;
+        if (isBusyWithProgram(other.name, pNum)) return false;
+        if (isPraTeacher(other)) return false;
 
+
+        return sameBaseClass(other.gridSchedule?.[day]?.[pNum], busyBase);
+    });
+
+
+    if (!hasCoTeacherCover) return false;
+}
+
+
+                        
                         const currentReliefCount = reliefList.filter(r => r.substituteName === t.name).length;
                         
                         // KETAT: GB dan PK tak tersenarai
                         if (t.name.includes('ROHAIZA')) return false;
                         if (settings.limitPK && IS_PK(t.name) && currentReliefCount >= 2) return false;
-                        if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
+if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
+
 
                         if (reliefList.some(r=>r.pNum===pNum && r.substituteName===t.name)) return false;
                         
@@ -857,6 +896,7 @@ const fetchHist = async () => {
 
 
             const clsBtn = "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm shadow-md transition-all";
+
 
             return (
                 <div className="min-h-screen p-2 md:p-6 font-sans">
@@ -890,53 +930,26 @@ const fetchHist = async () => {
                                     <button onClick={()=>setStep(2)} className="px-12 py-5 bg-slate-800 text-white rounded-3xl font-black tracking-widest uppercase hover:bg-black transition-all mb-8 shadow-xl">Pilih Guru Tiada &rarr;</button>}
 
 
-{(() => {
-                                        // 1. Kira julat tarikh Ahad - Khamis untuk minggu ini
-                                        const hariIni = new Date();
-                                        const hariSemasa = hariIni.getDay(); // 0 = Ahad, 1 = Isnin, ... 6 = Sabtu
-                                        
-                                        const ahad = new Date(hariIni);
-                                        ahad.setDate(hariIni.getDate() - hariSemasa);
-                                        
-                                        const khamis = new Date(ahad);
-                                        khamis.setDate(ahad.getDate() + 4);
-                                        
-                                        const formatTarikh = (d) => d.toISOString().split('T')[0];
-                                        const tarikhMula = formatTarikh(ahad);
-                                        const tarikhTamat = formatTarikh(khamis);
-
-                                        // 2. Tapis rekod yang berada dalam julat minggu ini sahaja
-                                        const rekodMingguIni = records.filter(r => r.date >= tarikhMula && r.date <= tarikhTamat);
-
-                                        if (rekodMingguIni.length === 0) return null;
-
-                                        return (
-                                            <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
-                                                <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
-                                                    <Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu (Minggu Ini)
-                                                </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {rekodMingguIni.map(r => (
-                                                        <div key={r.id} onClick={()=>{
-                                                            setDate(r.date);
-                                                            setDay(r.day);
-                                                            setAbsentTeachers(hydrateAbsentTeachers(r.absentTeachers));
-                                                            setReliefList(r.reliefList);
-                                                            setStep(3);
-                                                        }} className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:border-blue-300 cursor-pointer group transition-colors">
-                                                            <div>
-                                                                <div className="font-black text-slate-800">{r.date} <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">{r.day}</span></div>
-                                                                <div className="text-xs text-slate-500 font-medium mt-1">{r.absentTeachers.length} Cikgu Tiada • {r.reliefList.length} Diganti</div>
-                                                            </div>
-                                                            <div className="bg-white p-2 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors">
-                                                                <Icons.ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                    {records.length > 0 && (
+                                        <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
+                                            <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2"><Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {records.map(r => (
+                                                    <div key={r.id} onClick={()=>{
+    setDate(r.date);
+    setDay(r.day);
+    setAbsentTeachers(hydrateAbsentTeachers(r.absentTeachers));
+    setReliefList(r.reliefList);
+    setStep(3);
+}}
+className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:border-blue-300 cursor-pointer group transition-colors">
+                                                        <div><div className="font-black text-slate-800">{r.date} <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">{r.day}</span></div><div className="text-xs text-slate-500 font-medium mt-1">{r.absentTeachers.length} Cikgu Tiada • {r.reliefList.length} Diganti</div></div>
+                                                        <div className="bg-white p-2 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors"><Icons.ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" /></div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        );
-                                    })()}
+                                        </div>
+                                    )}
 
 
                                     <div className="mt-12 pt-8 border-t border-slate-100 flex flex-wrap gap-4 w-full justify-center">
@@ -1165,28 +1178,20 @@ const fetchHist = async () => {
                                                                 }
                                                             })}
                                                         </tr>
-// ... Sambungan daripada hujung kod jadual step === 3 anda ...
-                                  ); // <-- Semicolon di sini dah dibuang
-                                })}
-                            </tbody>
-                        </table>
-                    </div> {/* 1. Penutup kotak tatal jadual */}
-                </div> {/* 2. Penutup kad putih step 3 */}
-            )} {/* 3. Penutup logik {step === 3 && ...} */}
-        </div> {/* 4. Penutup untuk container utama halaman / App */}
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button onClick={()=>setStep(2)} className="w-full mt-6 py-4 font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">&larr; Ubah Kehadiran Guru</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-        {/* ========================================================================== */}
-        {/* MODAL & OVERLAY COMPONENT */}
-        {/* ========================================================================== */}
-        
-        {isProcessing && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in">
-                <div className="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-8 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <div className="font-black text-xs uppercase text-blue-900">Menyusun Data...</div>
-                </div>
-            </div>
-        )}
+
+                    {isProcessing && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in"><div className="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-4"><div className="w-12 h-12 border-8 border-blue-600 border-t-transparent rounded-full animate-spin"></div><div className="font-black text-xs uppercase text-blue-900">Menyusun Data...</div></div></div>}
+
 
                     {urlModal.isOpen && (
                         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -1198,6 +1203,7 @@ const fetchHist = async () => {
                             </div>
                         </div>
                     )}
+
 
                     {pModal.isOpen && pModal.teacher && (
                         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -1254,6 +1260,7 @@ const fetchHist = async () => {
                                     </button>
                                 </div>
 
+
                                 <div className="max-h-[30vh] overflow-auto mb-6 pr-2 custom-scrollbar">
                                     <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest">Atau Tandakan Secara Manual:</p>
                                     {P.map(p => {
@@ -1274,6 +1281,8 @@ const fetchHist = async () => {
                         </div>
                     )}
 
+
+                    {/* MODAL KELAS TUTUP / PROGRAM */}
                     {cModal.isOpen && (
                         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
                             <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-zoom-in flex flex-col max-h-[90vh]">
@@ -1286,6 +1295,7 @@ const fetchHist = async () => {
                                 
                                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                                     <div className="flex flex-col gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 mb-6">
+                                        
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
                                                 <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Sebab / Nama Program</label>
@@ -1330,6 +1340,7 @@ const fetchHist = async () => {
                                             </div>
                                         </div>
 
+
                                         <div>
                                             <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Guru Terlibat (Pilih jika ada)</label>
                                             <div className="max-h-32 overflow-y-auto border border-slate-300 rounded-lg bg-white p-2 custom-scrollbar shadow-inner">
@@ -1348,10 +1359,12 @@ const fetchHist = async () => {
                                             <p className="text-[9px] text-slate-500 mt-1 italic">*{cModal.involved.length} guru dipilih.</p>
                                         </div>
 
+
                                         <button onClick={addClosedClass} className="w-full py-3 bg-slate-800 text-white font-black uppercase tracking-widest text-xs rounded-xl mt-2 hover:bg-black transition-colors shadow-md">
                                             Daftar Program / Kelas
                                         </button>
                                     </div>
+
 
                                     <div>
                                         <label className="text-xs font-black text-slate-400 uppercase mb-3 block">Senarai Berdaftar Hari Ini:</label>
@@ -1378,6 +1391,8 @@ const fetchHist = async () => {
                         </div>
                     )}
 
+
+                    {/* MODAL ANALISA GURU */}
                     {showStats && (
                         <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 animate-fade-in">
                             <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-zoom-in overflow-hidden">
@@ -1400,24 +1415,22 @@ const fetchHist = async () => {
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {teachers.map(t => (
-// ... Sambungan daripada {teachers.map(t => ( ...
                                                 <tr key={t.id} className="hover:bg-slate-50">
                                                     <td className="p-4 font-bold text-slate-700">{t.name}</td>
-                                                    <td className="p-4 text-center font-black text-purple-700 bg-purple-50/30">
-                                                        {t.totalReliefHours || 0} Waktu
+                                                    <td className="p-4 text-center">
+                                                        <span className={`px-3 py-1 rounded-full font-black ${t.totalRelief > 0 ? 'bg-purple-100 text-purple-700' : 'text-slate-400'}`}>
+                                                            {t.totalRelief} kali
+                                                        </span>
                                                     </td>
-                                                    <td className="p-4 text-center font-black text-red-600 bg-red-50/30">
-                                                        {t.totalAbsentHours || 0} Waktu
+                                                    <td className="p-4 text-center">
+                                                        <span className={`px-3 py-1 rounded-full font-black ${t.totalAbsent > 0 ? 'bg-red-100 text-red-600' : 'text-slate-400'}`}>
+                                                            {t.totalAbsent} kali
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
-                                </div>
-                                <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
-                                    <button onClick={() => setShowStats(false)} className="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-black transition-colors shadow-md">
-                                        Tutup Analisa
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1426,7 +1439,6 @@ const fetchHist = async () => {
             );
         };
 
-export default ReliefPage; // Atau nama komponen utama anda
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
