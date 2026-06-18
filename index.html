@@ -1,0 +1,1447 @@
+﻿<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Guru Ganti SKMT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+
+    <style>
+        body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+        .animate-zoom-in { animation: zoomIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        select { appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+        .editable-select { background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7rem top 50%; background-size: .65rem auto; padding-right: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const SHEET_ID = '1txoWim24edQiD2e3OC52Cxt2rmVoZttxhok3Y0b1FUk';
+
+
+        const Icons = {
+            BookOpen: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            Calendar: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
+            FileText: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
+            Search: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            CheckCircle: (p) => <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>,
+            ArrowLeft: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+            ChevronRight: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m9 18 6-6-6-6"/></svg>,
+            Download: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
+            Clock: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            X: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Trash2: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            CloudSync: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>,
+            CloudUpload: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v-9"/><path d="m16 7-4-4-4 4"/></svg>,
+            Database: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+            RefreshCw: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+            History: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>,
+            ShieldAlert: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>,
+            Grid: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>,
+            BarChart: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        };
+
+
+        const TEACHERS = [
+            "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NURLEEZA BINTI ZAKARIA",
+            "MOHD FAISAL BIN HARUN", "ABD GHAFAR BIN MAT RIPPIN", "ABDUL RAHMAN BIN MOHD DIN",
+            "AINI LIZA BINTI LIMAT", "AMIDAH BINTI SULONG", "ANIDA BINTI SULONG", "ANUAR BIN JUSOH",
+            "AZMI BADIUZZAMAN BIN HASHIM", "AZMI BIN ABDULLAH", "AZUWANI BINTI AWANG",
+            "CIK ROSMAWATI BINTI HASSAN", "ENGKU ROSNIWATI BINTI ENGKU ZAHIT", "FARIDAH BINTI MOHD AMIN",
+            "FATIN NABILAH BINTI MOHD YASIM", "FATIHATUN NAJIHAH BINTI ISMAIL", "KAMROL HISHAM BIN OTHMAN",
+            "KASHFULLAH BIN HUSAIN", "KHAIRUNNISA HAKIMAH BINTI KAMAL", "MASBAH BINTI MOHAMAD ETLI",
+            "MASITAH BINTI SALIM", "MASREY BIN ABDULLAH @ MUHAMAD", "MAZURA BINTI MAT YUSOF",
+            "MOHD HISHAMMUDDIN BAHARIE BIN HAJI MOHAMAD NOR", "MOHD RASYDAN BIN AB. RASHID",
+            "MUHAMAD ABDAH BIN ISMAIL", "MUSALMAH BINTI ALIAS", "NASIR BIN YAKUB",
+            "NOOR AINI BINTI SULAIMAN", "NOOR ASIAH BINTI MOHD", "NOOR SUHAINI BINTI IBRAHIM",
+            "NOR MASTURA BINTI SETAPA", "NORAINI BINTI ISMAIL", "NORAINI BINTI MOHAMED SAH",
+            "NORFATIZURAINI BINTI MD. BATI", "NORHAYATI BINTI ABDUL GHANI", "NORNAZIHAH BINTI HAMEZAH",
+            "NUJAIMI BINTI RAMLI", "NURUL AKMAL BINTI ZAINUDIN", "NURUL HUSNA BINTI SAYUTI",
+            "NURUL NAJWA BINTI MOHD YUSOF", "NURUL SALWANI BINTI MOHAMAD", "RAHIMAWATI BINTI ABDUL RAHIM@FUZI",
+            "SARIMAH BINTI YAH", "SHAH RIMAN BIN MOHD", "SITI ZUBAIDAH BINTI MD. YUNUS",
+            "SYAMSUDDIN BIN MUSTAFFA", "WAN NOR IDAYU BINTI WAN ALI", "ZAHABIAH BINTI ZAKARIA",
+            "ZAINAL ABIDIN BIN ISMAIL", "ZURIYANI BINTI ZAKARIA"
+        ];
+        
+        const P = [1,2,3,4,5,6,7,8,9,10,11];
+        const DAYS = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis'];
+        const PT = {1:'07:45-08:15', 2:'08:15-08:45', 3:'08:45-09:15', 4:'09:15-09:45', 5:'09:45-10:15', 6:'10:15-10:45', 7:'10:45-11:15', 8:'11:15-11:45', 9:'11:45-12:15', 10:'12:15-12:45', 11:'12:45-13:15'};
+
+
+        const emptyGrid = () => ({Ahad:{}, Isnin:{}, Selasa:{}, Rabu:{}, Khamis:{}});
+        
+        const initData = () => TEACHERS.map((n, i) => ({ 
+            id: i+1, name: n, count: 0, absentCount: 0, totalRelief: 0, totalAbsent: 0, gridSchedule: emptyGrid() 
+        }));
+
+
+        const parseCSV = (str) => {
+            let arr = [], quote = false;
+            for (let row=0, col=0, c=0; c<str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                arr[row] = arr[row] || []; arr[row][col] = arr[row][col] || '';
+                if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+                if (cc == '"') { quote = !quote; continue; }
+                if (cc == ',' && !quote) { ++col; continue; }
+                if (cc == '\r' && nc == '\n' && !quote) { ++row; col=0; ++c; continue; }
+                if (cc == '\n' && !quote) { ++row; col=0; continue; }
+                if (cc == '\r' && !quote) { ++row; col=0; continue; }
+                arr[row][col] += cc;
+            }
+            return arr;
+        };
+
+
+        const fetchCSV = async (sheetName) => {
+            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`);
+            if (!res.ok) return null;
+            const text = await res.text();
+            if (text.trim().startsWith('<!DOCTYPE')) throw new Error('Sheet Private. Tukar Share: Anyone with link.');
+            return parseCSV(text);
+        };
+
+
+        const isPraClass = (cName) => {
+            if (!cName) return false;
+            const n = cName.trim().toUpperCase();
+            return n.startsWith('PRA 1') || n.startsWith('PRA 2') || n.startsWith('PRA 3') || 
+                   n.startsWith('PRA1') || n.startsWith('PRA2') || n.startsWith('PRA3') || 
+                   n === 'PRA';
+        };
+        
+        const isPemulihanClass = (cName) => cName && cName.toUpperCase().includes('PEMULIHAN');
+        
+        const IS_PK = (name) => {
+            if (!name) return false;
+            const n = name.toUpperCase();
+            return n.includes('NOR AZIAH BINTI MUSTAFA') || 
+                   n.includes('UMMY NURLEEZA BINTI ZAKARIA') || 
+                   n.includes('MOHD FAISAL BIN HARUN');
+        };
+        
+        const isPraTeacher = (teacher) => {
+            if (!teacher) return false;
+            for (let d of DAYS) {
+                let grid = teacher.gridSchedule?.[d];
+                if (grid) {
+                    for (let p in grid) {
+                        if (isPraClass(grid[p])) return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+
+        const isPemulihanTeacher = (teacher) => {
+            if (!teacher) return false;
+            for (let d of DAYS) {
+                let grid = teacher.gridSchedule?.[d];
+                if (grid) {
+                    for (let p in grid) {
+                        if (isPemulihanClass(grid[p])) return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+
+        const getBaseClass = (cls) => {
+            if (!cls) return "";
+            let n = cls.trim().toUpperCase();
+            if (n.includes('PRA 1')) return 'PRA 1';
+            if (n.includes('PRA 2')) return 'PRA 2';
+            if (n.includes('PRA 3')) return 'PRA 3';
+            if (n.includes('PEMULIHAN')) return 'PEMULIHAN';
+            
+            const pts = n.split(" ");
+            if (pts.length > 1 && !/\d/.test(pts[0])) {
+                return pts.slice(1).join(" ");
+            }
+            return n;
+        };
+
+
+        const checkRestRule = (grid, p, allowStraightRelief = true) => {
+    if (allowStraightRelief) return false;
+
+
+    const hasDuty = (period) => grid[period] && grid[period].trim() !== '';
+    if (p > 1 && p < 11 && hasDuty(p - 1) && hasDuty(p + 1)) return true;
+    if (p > 2 && hasDuty(p - 1) && hasDuty(p - 2)) return true;
+    if (p < 10 && hasDuty(p + 1) && hasDuty(p + 2)) return true;
+    return false;
+};
+
+
+        const sameBaseClass = (a, b) => {
+              return getBaseClass(a) === getBaseClass(b);
+        };
+
+
+        const shortName = (name) => {
+                 return name ? name.split(' ').slice(0, 2).join(' ') : '';
+        };
+
+
+        const App = () => {
+            const [step, setStep] = useState(1);
+            const [absentTeachers, setAbsentTeachers] = useState([]);
+            const [reliefList, setReliefList] = useState([]);
+            const [closedClasses, setClosedClasses] = useState([]); 
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [search, setSearch] = useState('');
+            const [date, setDate] = useState('');
+            const [day, setDay] = useState('');
+            const [msg, setMsg] = useState('');
+            const [teachers, setTeachers] = useState([]);
+            const [records, setRecords] = useState([]);
+            
+            const [pModal, setPModal] = useState({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
+            const [cModal, setCModal] = useState({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] }); 
+            const [appUrl, setAppUrl] = useState('https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec');
+            const [urlModal, setUrlModal] = useState({ isOpen: false, action: null, temp: '' });
+            const [loadingCloud, setLoadingCloud] = useState({ drive: false, sheet: false });
+            const [showMaster, setShowMaster] = useState(false);
+            const [showStats, setShowStats] = useState(false);
+const [settings, setSettings] = useState({
+    allowStraightRelief: true,
+    limitPK: true,
+    allowPemulihanEmergency: false,
+    allowPullCoTeacher: true
+});
+
+
+
+
+
+
+            useEffect(() => {
+                const sData = localStorage.getItem('skmt_teachers_master_v8');
+                setTeachers(sData ? JSON.parse(sData) : initData());
+                
+                try {
+                    const sRec = localStorage.getItem('skmt_records_master_v8');
+                    if (sRec) setRecords(JSON.parse(sRec));
+                } catch(e) { console.error("Ralat load rekod:", e); }
+
+
+                const sUrl = localStorage.getItem('skmt_url');
+                if (sUrl) setAppUrl(sUrl);
+
+
+                let tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+                setDate(tmr.toISOString().split('T')[0]);
+                const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+                setDay(dayNames[tmr.getDay()]);
+            }, []);
+
+
+            const classesToday = useMemo(() => {
+                const clsSet = new Set();
+                teachers.forEach(t => {
+                    P.forEach(p => {
+                        const c = t.gridSchedule?.[day]?.[p];
+                        if (c && c.trim() !== '') {
+                            clsSet.add(getBaseClass(c));
+                        }
+                    });
+                });
+                return Array.from(clsSet).sort();
+            }, [teachers, day]);
+
+
+            const handleDate = (e) => {
+                setDate(e.target.value);
+                if (e.target.value) setDay(['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'][new Date(e.target.value).getDay()]);
+                else setDay('');
+            };
+        const hydrateAbsentTeachers = (list) => {
+    return list.map(a => {
+        const master = teachers.find(t => t.id === a.id) || teachers.find(t => t.name === a.name);
+        return {
+            ...(master || {}),
+            ...a,
+            id: master?.id || a.id,
+            name: master?.name || a.name,
+            gridSchedule: master?.gridSchedule || a.gridSchedule || emptyGrid()
+        };
+    });
+};
+
+
+            const toggleAbsent = (t) => {
+                if (absentTeachers.find(a => a.id === t.id)) {
+                    setAbsentTeachers(absentTeachers.filter(a => a.id !== t.id));
+                } else {
+                    setAbsentTeachers([...absentTeachers, { ...t, isFull: true, periods: [] }]);
+                }
+            };
+
+
+            const openPModal = (e, t) => {
+                e.stopPropagation();
+                const existing = absentTeachers.find(a => a.id === t.id);
+                let per = (existing && !existing.isFull) ? existing.periods : [];
+                setPModal({ isOpen: true, teacher: t, selected: per, out: '', in: '' });
+            };
+
+
+            const savePModal = () => {
+                const ext = absentTeachers.filter(a => a.id !== pModal.teacher.id);
+                if (pModal.selected.length === 0) {
+                    setAbsentTeachers(ext);
+                } else {
+                    setAbsentTeachers([...ext, { ...pModal.teacher, isFull: pModal.selected.length === 11, periods: pModal.selected }]);
+                }
+                setPModal({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
+            };
+
+
+            const toggleTeacherInvolved = (tName) => {
+                setCModal(m => ({
+                    ...m,
+                    involved: m.involved.includes(tName) 
+                        ? m.involved.filter(n => n !== tName) 
+                        : [...m.involved, tName]
+                }));
+            };
+
+
+            const addClosedClass = () => {
+                if (!cModal.clsName && cModal.involved.length === 0) { 
+                    alert("Sila pilih kelas atau sekurang-kurangnya seorang guru yang terlibat."); 
+                    return; 
+                }
+                const startP = parseInt(cModal.start);
+                const endP = parseInt(cModal.end);
+                if (startP > endP) { alert("Waktu Mula mestilah sebelum atau sama dengan Waktu Tamat."); return; }
+                
+                const newRule = {
+                    id: Math.random(),
+                    class: cModal.clsName || 'PROGRAM UMUM',
+                    start: startP,
+                    end: endP,
+                    reason: cModal.reason,
+                    involved: cModal.involved
+                };
+                setClosedClasses([...closedClasses, newRule]);
+                setCModal({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] });
+            };
+
+
+            const removeClosedClass = (id) => {
+                setClosedClasses(closedClasses.filter(c => c.id !== id));
+            };
+
+
+            const isBusyWithProgram = (tName, p) => {
+                return closedClasses.some(cc => 
+                    p >= cc.start && p <= cc.end && cc.involved.includes(tName)
+                );
+            };
+
+
+            const runAlgorithm = (isRecalc = false) => {
+                if (!isRecalc && absentTeachers.length === 0) return;
+                setIsProcessing(true);
+
+
+                let cands = teachers.filter(t => {
+                    const isAbs = absentTeachers.find(a => a.id === t.id);
+                    if (isAbs && isAbs.isFull) return false; 
+                    return true;
+                })
+                .filter(t => !isPraTeacher(t))
+                .map(t => {
+                    let grid = JSON.parse(JSON.stringify(t.gridSchedule?.[day] || {}));
+                    
+                    const isAbs = absentTeachers.find(a => a.id === t.id);
+                    if (isAbs && !isAbs.isFull) {
+                        isAbs.periods.forEach(p => { grid[p] = ""; });
+                    }
+                    
+                    P.forEach(p => {
+                        let cls = grid[p];
+                        if (cls && cls.trim() !== '') {
+                            let bClass = getBaseClass(cls);
+                            let isClosed = closedClasses.some(cc => sameBaseClass(bClass,   cc.class) && p >= cc.start && p <= cc.end);
+                            if (isClosed) {
+                                grid[p] = ""; 
+                            }
+                        }
+                        if (isBusyWithProgram(t.name, p)) {
+                            grid[p] = "PROGRAM"; 
+                        }
+                    });
+                    
+                    return {
+                        ...t, 
+                        isPemulihan: isPemulihanTeacher(t),
+                        clsCount: P.filter(x => grid[x]?.trim() && grid[x] !== "PROGRAM").length,
+                        relCount: 0, 
+                        grid: grid
+                    };
+                });
+
+
+                const nRel = [];
+const handled = {};
+let pToCover = [];
+
+
+const existingReliefMap = {};
+reliefList.forEach(r => {
+    const key = `${r.absentName}_${r.period}_${getBaseClass(r.class)}`;
+    existingReliefMap[key] = r;
+});
+
+
+
+
+                if (isRecalc) {
+                    pToCover = reliefList.map(r => ({
+                        abs: absentTeachers.find(a => a.name === r.absentName) || { id: Date.now(), name: r.absentName },
+                        p: parseInt(r.period), cls: r.class, base: getBaseClass(r.class), time: r.time
+                    })).filter(item => {
+                        return !closedClasses.some(cc => sameBaseClass(item.base, cc.class)
+
+
+ && item.p >= cc.start && item.p <= cc.end);
+                    });
+                } else {
+                    absentTeachers.forEach(abs => {
+                        P.forEach(p => {
+                            const masterAbs = teachers.find(t => t.id === abs.id) || teachers.find(t => t.name === abs.name);
+let cls = (abs.gridSchedule || masterAbs?.gridSchedule)?.[day]?.[p];
+                            if (cls?.trim() && (abs.isFull || abs.periods.includes(p))) {
+                                const bClass = getBaseClass(cls);
+                                
+                                let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
+
+
+                                if (isClosed) return;
+                                
+                                if (isPemulihanClass(cls)) return;
+                                if (isPraClass(cls) && p !== 5) return;
+                                pToCover.push({ abs, p, cls, base: bClass, time: PT[p] });
+                            }
+                        });
+                    });
+                }
+
+
+                pToCover.sort((a, b) => a.p - b.p);
+
+
+                pToCover.forEach(i => {
+                    const key = `${i.p}_${i.base}`;
+                    if (handled[key]) return; 
+const existingKey = `${i.abs.name}_${i.p}_${i.base}`;
+const existingRelief = existingReliefMap[existingKey];
+
+
+if (!isRecalc && existingRelief) {
+    nRel.push({
+        ...existingRelief,
+        class: i.cls,
+        period: i.p.toString(),
+        pNum: i.p,
+        time: i.time
+    });
+
+
+    const keptSub = cands.find(c => c.name === existingRelief.substituteName);
+    if (keptSub) {
+        keptSub.relCount++;
+        keptSub.grid[i.p] = "R";
+    }
+
+
+    handled[key] = true;
+    return;
+}
+
+
+
+
+const co = cands.filter(t => {
+            if (t.id === i.abs.id) return false;
+    if (isBusyWithProgram(t.name, i.p)) return false;
+    return sameBaseClass(t.grid?.[i.p], i.base);
+});
+
+
+if (co.length > 0 && !settings.allowPullCoTeacher) {
+    nRel.push({
+        id: `${i.abs.id}-${i.p}-co-${Math.random()}`,
+        absentName: i.abs.name,
+        substituteName: `GABUNG: ${co.map(t => shortName(t.name)).join(', ')}`,
+        class: i.cls,
+        period: i.p.toString(),
+        pNum: i.p,
+        time: i.time
+    });
+    handled[key] = true;
+    return;
+}
+
+
+                    let free = cands.filter(c => {
+                       if (c.grid[i.p]?.trim()) {
+                  if (!settings.allowPullCoTeacher) return false;
+                    if (c.grid[i.p] === "PROGRAM") return false;
+
+
+                    const busyBase = getBaseClass(c.grid[i.p]);
+                    const hasCoTeacherCover = cands.some(other => {
+                        if (other.id === c.id) return false;
+        if (other.grid?.[i.p] === "PROGRAM") return false;
+        return sameBaseClass(other.grid?.[i.p], busyBase);
+            });
+
+
+    if (!hasCoTeacherCover) return false;
+}
+                        
+                        const isAbs = absentTeachers.find(a => a.id === c.id);
+                        if (isAbs && !isAbs.isFull && isAbs.periods.includes(i.p)) return false; 
+                        
+                        if (checkRestRule(c.grid, i.p, settings.allowStraightRelief)) return false;
+                        
+                        // SYARAT KETAT: GB dan PK
+                        if (c.name.includes('ROHAIZA')) return false; 
+                        if (settings.limitPK && IS_PK(c.name) && c.relCount >= 2) return false;
+                if (!settings.allowPemulihanEmergency && c.isPemulihan) return false;
+                        
+                        return true;
+                    });
+                    
+                    if (free.length > 0) {
+                        free.sort((a,b) => {
+                            let penA = 0, penB = 0;
+                            let totA = a.clsCount + a.relCount, totB = b.clsCount + b.relCount;
+
+
+    if (a.grid[i.p]?.trim() && a.grid[i.p] !== "PROGRAM") penA += 2500;
+    if (b.grid[i.p]?.trim() && b.grid[i.p] !== "PROGRAM") penB += 2500;
+                            if (a.isPemulihan) penA += settings.allowPemulihanEmergency ? 10000 : 999999;
+if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
+
+
+
+
+                            
+                            // SEMAK REKOD SEMALAM: Paksa rehat hari ini jika dah penat semalam
+                            const lastRec = records.length > 0 ? records[0] : null;
+                            const aLast = lastRec ? lastRec.reliefList.filter(r => r.substituteName === a.name).length : 0;
+                            const bLast = lastRec ? lastRec.reliefList.filter(r => r.substituteName === b.name).length : 0;
+                            
+                            if (aLast >= 2) penA += 8000;
+                            if (bLast >= 2) penB += 8000;
+                            if (aLast === 1) penA += 1000;
+                            if (bLast === 1) penB += 1000;
+                            
+                            if (totA >= 6) penA += 4000 * (totA - 5);
+                            if (totB >= 6) penB += 4000 * (totB - 5);
+                            
+                            if (a.relCount === 1) penA += 200;
+                            else if (a.relCount === 2) penA += 1500;
+                            else if (a.relCount >= 3) penA += 5000;
+                            
+                            if (b.relCount === 1) penB += 200;
+                            else if (b.relCount === 2) penB += 1500;
+                            else if (b.relCount >= 3) penB += 5000;
+                            
+                            // Keadilan Pusingan (Round-Robin) 7 Hari Lepas
+                            penA += (a.count||0) * 500 + totA;
+                            penB += (b.count||0) * 500 + totB;
+                            
+                            return penA - penB;
+                        });
+                        
+                        const sub = free[0];
+                        nRel.push({ id: `${i.abs.id}-${i.p}-${Math.random()}`, absentName: i.abs.name, substituteName: sub.name, class: i.cls, period: i.p.toString(), pNum: i.p, time: i.time });
+                        handled[key] = true; sub.relCount++; sub.grid[i.p] = "R";
+                    } else {
+                        nRel.push({ id: `${i.abs.id}-${i.p}-${Math.random()}`, absentName: i.abs.name, substituteName: 'TIADA GURU FREE', class: i.cls, period: i.p.toString(), pNum: i.p, time: i.time });
+                        handled[key] = true;
+                    }
+                });
+
+
+                setTimeout(() => { setReliefList(nRel); setIsProcessing(false); setStep(3); }, 800);
+            };
+
+
+            const sRelief = useMemo(() => [...reliefList].sort((a, b) => a.pNum - b.pNum), [reliefList]);
+
+
+            const handleChangeSubstitute = (id, newSubName) => {
+                setReliefList(prev => prev.map(item => 
+                    item.id === id ? { ...item, substituteName: newSubName } : item
+                ));
+            };
+            
+            const removeReliefItem = (idToRemove) => {
+                 setReliefList(reliefList.filter(item => item.id !== idToRemove));
+            };
+
+
+            const fetchSched = async () => {
+                setIsProcessing(true);
+                try {
+                    let map = {}; teachers.forEach(t => map[t.name] = { ...t, gridSchedule: emptyGrid() });
+                    let ok = 0;
+                    for (let d of DAYS) {
+                        const rows = await fetchCSV(d);
+                        if (!rows) continue; ok++;
+                        let start = 1; for(let i=0; i<Math.min(5, rows.length); i++) if(rows[i][0]?.toUpperCase().includes('NAMA')){start=i+1;break;}
+                        for(let i=start; i<rows.length; i++) {
+                            const n = rows[i][0]?.trim().toUpperCase();
+                            if(!n) continue;
+                            if(!map[n]) map[n] = { id: Date.now()+Math.random(), name:n, count:0, absentCount:0, totalRelief:0, totalAbsent:0, gridSchedule:emptyGrid() };
+                            for(let p=1; p<=11; p++) if(rows[i][p]) map[n].gridSchedule[d][p] = rows[i][p].trim();
+                        }
+                    }
+                    if(!ok) throw new Error("Tiada data Ahad-Khamis");
+                    const arr = Object.values(map).sort((a,b) => a.name.localeCompare(b.name));
+                    setTeachers(arr); localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(arr));
+                    setMsg('Jadual dikemas kini.'); setTimeout(()=>setMsg(''),4000);
+                } catch(e) { alert("Ralat: " + e.message); }
+                setIsProcessing(false);
+            };
+
+
+            const fetchHist = async () => {
+                setIsProcessing(true);
+                try {
+                    const rows = await fetchCSV('DATA');
+                    if(!rows) throw new Error("Tab DATA tidak dijumpai.");
+                    
+                    let map = {}; teachers.forEach(t => map[t.name] = { ...t, count: 0, absentCount: 0, totalRelief: 0, totalAbsent: 0 });
+                    let dLimit = new Date(); dLimit.setDate(dLimit.getDate()-7);
+                    let f = 0;
+                    
+                    let groupedRecords = {};
+                    
+                    rows.slice(1).forEach(r => {
+                        const dStr = r[0]?.trim();
+                        const d = new Date(dStr);
+                        const absN = r[2]?.trim().toUpperCase();
+                        const subN = r[3]?.trim().toUpperCase();
+                        
+                        if(!isNaN(d)) {
+                            if(subN && map[subN]) map[subN].totalRelief++;
+                            if(absN && map[absN]) map[absN].totalAbsent++;
+                            
+                            if(d >= dLimit) {
+                                if(subN && map[subN]) { map[subN].count++; f++; }
+                                if(absN && map[absN]) { map[absN].absentCount++; }
+                            }
+                        }
+                        
+                        if (dStr && !isNaN(d.getTime())) {
+                            const dayStr = r[1]?.trim();
+                            const clsName = r[4]?.trim();
+                            const pStr = r[5]?.trim();
+                            const pNum = parseInt(pStr);
+                            
+                            if (!groupedRecords[dStr]) {
+                                groupedRecords[dStr] = { id: dStr + '-' + Date.now(), date: dStr, day: dayStr, reliefList: [], absMap: {} };
+                            }
+                            
+                            groupedRecords[dStr].reliefList.push({
+                                id: `${absN}-${pNum}-${Math.random()}`,
+                                absentName: absN,
+                                substituteName: subN,
+                                class: clsName,
+                                period: pStr,
+                                pNum: pNum,
+                                time: PT[pNum] || ''
+                            });
+                            
+                            if (!groupedRecords[dStr].absMap[absN]) {
+                                const tObj = teachers.find(t => t.name === absN);
+                                groupedRecords[dStr].absMap[absN] = {
+                                    id: tObj ? tObj.id : Date.now() + Math.random(),
+                                    name: absN,
+                                    isFull: false,
+                                    periods: []
+                                };
+                            }
+                            if (!groupedRecords[dStr].absMap[absN].periods.includes(pNum)) {
+                                groupedRecords[dStr].absMap[absN].periods.push(pNum);
+                            }
+                        }
+                    });
+                    
+                    const arr = Object.values(map).sort((a,b) => a.name.localeCompare(b.name));
+                    setTeachers(arr); localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(arr));
+                    
+                    const reconstructedRecords = Object.values(groupedRecords)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .slice(0, 10)
+                        .map(rec => ({
+                            id: rec.id,
+                            date: rec.date,
+                            day: rec.day,
+                            reliefList: rec.reliefList.sort((a,b) => a.pNum - b.pNum),
+                            absentTeachers: Object.values(rec.absMap)
+                        }));
+                        
+                    if (reconstructedRecords.length > 0) {
+                        setRecords(reconstructedRecords);
+                        localStorage.setItem('skmt_records_master_v8', JSON.stringify(reconstructedRecords));
+                    }
+                    
+                    setMsg(`Rekod & Sejarah ditarik. (${f} ganti minggu ini)`); setTimeout(()=>setMsg(''),4500);
+                } catch(e) { alert("Ralat Refresh Rekod DATA: " + e.message); }
+                setIsProcessing(false);
+            };
+
+
+            const mkPdf = () => {
+                const doc = new window.jspdf.jsPDF();
+                doc.setFontSize(16); doc.text('JADUAL GURU GANTI (RELIEF) - SK MENGABANG TELIPOT', 14, 20);
+                doc.setFontSize(10); doc.text(`Tarikh Ganti: ${new Date(date).toLocaleDateString('ms-MY')} (${day})`, 14, 28);
+                doc.autoTable({ 
+                    startY: 35, 
+                    head: [['Bil', 'Guru Tiada', 'Waktu', 'Masa', 'MP & Kelas', 'Guru Ganti']], 
+                    body: sRelief.map((r, index) => [index + 1, r.absentName, r.period, r.time, r.class, r.substituteName]), 
+                    theme: 'grid', 
+                    headStyles: { fillColor: [30, 64, 175] },
+                    columnStyles: { 
+                        0: { halign: 'center', cellWidth: 10 }, 
+                        2: { halign: 'center', cellWidth: 15 } 
+                    } 
+                });
+                return doc;
+            };
+
+
+            const doCloud = async (act, u) => {
+                const url = u || appUrl;
+                setLoadingCloud(p => ({...p, [act]: true}));
+                try {
+                    const pay = act === 'drive'
+    ? {
+        action: "uploadPdf",
+        filename: `Relief_SKMT_${date}.pdf`,
+        base64: mkPdf().output('datauristring').split(',')[1],
+        folderId: "1Aa9RGZX35kbFj-1dnLrR4gynQrHLidj-"
+    }
+    : {
+        action: "replaceDataByDate",
+        sheetId: SHEET_ID,
+        date: date,
+        records: sRelief.map(r => [date, day, r.absentName, r.substituteName, r.class, r.period])
+    };
+
+
+if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk direkod.");
+                    
+                    const res = await fetch(url, { method: 'POST', body: JSON.stringify(pay) });
+                    const ret = await res.json();
+                    if(ret.success) alert(`Berjaya ke ${act==='drive'?'Drive':'Sheets'}!`); else throw new Error(ret.error);
+                } catch(e) { alert("Gagal: " + e.message); if(e.message.includes('fetch')) { setAppUrl(''); localStorage.removeItem('skmt_url'); } }
+                setLoadingCloud(p => ({...p, [act]: false}));
+            };
+
+
+            const cloudClick = (act) => appUrl ? doCloud(act, appUrl) : setUrlModal({ isOpen: true, action: act, temp: 'https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec' });
+            
+            const submitUrl = () => {
+                if (!urlModal.temp) return alert("Sila letak URL");
+                setAppUrl(urlModal.temp); localStorage.setItem('skmt_url', urlModal.temp);
+                setUrlModal({ isOpen: false, action: null, temp: '' });
+                doCloud(urlModal.action, urlModal.temp);
+            };
+
+
+     const handleSimpan = () => {
+    const oldRec = records.find(r => r.date === date);
+
+
+    const upd = teachers.map(t => {
+        const newRelCount = sRelief.filter(r => r.substituteName === t.name).length;
+        const oldRelCount = oldRec ? oldRec.reliefList.filter(r => r.substituteName === t.name).length : 0;
+
+
+        const newAbsCount = absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0;
+        const oldAbsCount = oldRec ? oldRec.absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0 : 0;
+
+
+        return { 
+            ...t, 
+            count: (t.count || 0) + newRelCount - oldRelCount,
+            totalRelief: (t.totalRelief || 0) + newRelCount - oldRelCount,
+            totalAbsent: (t.totalAbsent || 0) + newAbsCount - oldAbsCount
+        };
+    });
+
+
+    setTeachers(upd);
+    localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(upd));
+    
+    const nRec = { id: oldRec?.id || date + '-' + Date.now(), date, day, reliefList: sRelief, absentTeachers };
+    const uRec = [nRec, ...records.filter(r => r.date !== date)].slice(0, 10);
+
+
+    setRecords(uRec); 
+    localStorage.setItem('skmt_records_master_v8', JSON.stringify(uRec)); 
+    
+    setMsg(oldRec ? 'Rekod tarikh ini dikemas kini!' : 'Selesai disimpan!');
+    setTimeout(() => {
+        setMsg('');
+        setStep(1);
+        setAbsentTeachers([]);
+        setReliefList([]);
+        setClosedClasses([]);
+    }, 3000);
+};
+
+
+            const optSubs = (pNum, cName) => {
+                return teachers
+                    .filter(t => {
+                        const isAbs = absentTeachers.find(a=>a.id===t.id);
+                        if (isAbs && isAbs.isFull) return false; 
+                        if (isAbs && !isAbs.isFull && isAbs.periods.includes(pNum)) return false; 
+                        return true;
+                    })
+                    .filter(t => !isPraTeacher(t))
+                    .filter(t => {
+                        if (t.name === cName) return false;
+                        
+                        let tGrid = { ...(t.gridSchedule?.[day] || {}) };
+                        const isAbs = absentTeachers.find(a=>a.id===t.id);
+                        if (isAbs && !isAbs.isFull) {
+                            isAbs.periods.forEach(per => { tGrid[per] = ""; });
+                        }
+                        
+                        P.forEach(p => {
+                            let cls = tGrid[p];
+                            if (cls && cls.trim() !== '') {
+                                let bClass = getBaseClass(cls);
+                                let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
+
+
+                                if (isClosed) tGrid[p] = ""; 
+                            }
+                            if (isBusyWithProgram(t.name, p)) {
+                                tGrid[p] = "PROGRAM"; 
+                            }
+                        });
+                        
+                       if (tGrid[pNum]?.trim()) {
+    if (!settings.allowPullCoTeacher) return false;
+    if (tGrid[pNum] === "PROGRAM") return false;
+
+
+    const busyBase = getBaseClass(tGrid[pNum]);
+    const hasCoTeacherCover = teachers.some(other => {
+        if (other.id === t.id) return false;
+
+
+        const isOtherAbs = absentTeachers.find(a => a.id === other.id);
+        if (isOtherAbs && (isOtherAbs.isFull || isOtherAbs.periods.includes(pNum))) return false;
+        if (isBusyWithProgram(other.name, pNum)) return false;
+        if (isPraTeacher(other)) return false;
+
+
+        return sameBaseClass(other.gridSchedule?.[day]?.[pNum], busyBase);
+    });
+
+
+    if (!hasCoTeacherCover) return false;
+}
+
+
+                        
+                        const currentReliefCount = reliefList.filter(r => r.substituteName === t.name).length;
+                        
+                        // KETAT: GB dan PK tak tersenarai
+                        if (t.name.includes('ROHAIZA')) return false;
+                        if (settings.limitPK && IS_PK(t.name) && currentReliefCount >= 2) return false;
+if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
+
+
+                        if (reliefList.some(r=>r.pNum===pNum && r.substituteName===t.name)) return false;
+                        
+                        reliefList.filter(r=>r.substituteName===t.name).forEach(r => tGrid[r.pNum] = "R");
+                        return !checkRestRule(tGrid, pNum, settings.allowStraightRelief);
+                    })
+                    .map(t=>t.name).sort();
+            };
+
+
+            const clsBtn = "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm shadow-md transition-all";
+
+
+            return (
+                <div className="min-h-screen p-2 md:p-6 font-sans">
+                    <div className="max-w-6xl mx-auto relative">
+                        {msg && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-green-100 border-l-4 border-green-500 text-green-800 px-6 py-4 rounded-lg shadow-xl flex items-center font-bold text-sm animate-slide-in"><Icons.CheckCircle className="w-5 h-5 mr-3"/>{msg}</div>}
+                        
+                        <header className="flex flex-col md:flex-row justify-between mb-8 gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-blue-600 p-3 rounded-2xl shadow-lg"><Icons.BookOpen className="w-8 h-8 text-white" /></div>
+                                <div><h1 className="text-2xl font-black text-slate-800 tracking-tight">Sistem Relief SKMT</h1><p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Siri 3/2026 • Edisi Master</p></div>
+                            </div>
+                            <div className="flex bg-white p-2 pr-6 rounded-2xl border border-slate-200 shadow-sm items-center gap-4">
+                                <div className="bg-blue-50 p-2 rounded-xl"><Icons.Calendar className="w-5 h-5 text-blue-600" /></div>
+                                <div className="flex flex-col relative min-w-[140px]">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">Tarikh Ganti</label>
+                                    <input type="date" className="text-sm font-bold text-slate-800 outline-none w-full" value={date} onChange={handleDate} />
+                                    <span className="absolute right-0 bottom-0 text-[10px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded">{day}</span>
+                                </div>
+                            </div>
+                        </header>
+
+
+                        <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+                            {step===1 && (
+                                <div className="p-8 md:p-12 animate-fade-in text-center flex flex-col items-center">
+                                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6"><Icons.FileText className="w-10 h-10 text-blue-600"/></div>
+                                    <h2 className="text-3xl font-black text-slate-800 mb-3">Mula Sesi Relief</h2>
+                                    <p className="text-slate-500 max-w-sm mb-6">Pilih tarikh di atas dan teruskan menjana jadual.</p>
+                                    
+                                    {(day==='Jumaat' || day==='Sabtu') ? <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-sm mb-8"><Icons.X className="w-4 h-4 inline mr-1"/>Hari Kelepasan</div> :
+                                    <button onClick={()=>setStep(2)} className="px-12 py-5 bg-slate-800 text-white rounded-3xl font-black tracking-widest uppercase hover:bg-black transition-all mb-8 shadow-xl">Pilih Guru Tiada &rarr;</button>}
+
+
+                                    {records.length > 0 && (
+                                        <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
+                                            <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2"><Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {records.map(r => (
+                                                    <div key={r.id} onClick={()=>{
+    setDate(r.date);
+    setDay(r.day);
+    setAbsentTeachers(hydrateAbsentTeachers(r.absentTeachers));
+    setReliefList(r.reliefList);
+    setStep(3);
+}}
+className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:border-blue-300 cursor-pointer group transition-colors">
+                                                        <div><div className="font-black text-slate-800">{r.date} <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">{r.day}</span></div><div className="text-xs text-slate-500 font-medium mt-1">{r.absentTeachers.length} Cikgu Tiada • {r.reliefList.length} Diganti</div></div>
+                                                        <div className="bg-white p-2 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors"><Icons.ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" /></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+
+                                    <div className="mt-12 pt-8 border-t border-slate-100 flex flex-wrap gap-4 w-full justify-center">
+                                        <button onClick={()=>setShowStats(true)} className="flex items-center gap-2 px-6 py-4 bg-purple-50 text-purple-700 font-bold rounded-2xl hover:bg-purple-100 text-sm shadow-sm"><Icons.BarChart className="w-5 h-5"/> Analisa Guru</button>
+                                        <button onClick={fetchSched} className="flex items-center gap-2 px-6 py-4 bg-blue-50 text-blue-700 font-bold rounded-2xl hover:bg-blue-100 text-sm shadow-sm"><Icons.CloudSync className="w-5 h-5"/> Kemaskini Jadual</button>
+                                        <button onClick={fetchHist} className="flex items-center gap-2 px-6 py-4 bg-teal-50 text-teal-700 font-bold rounded-2xl hover:bg-teal-100 text-sm shadow-sm"><Icons.Database className="w-5 h-5"/> Refresh Rekod Lepas</button>
+                                    </div>
+                                </div>
+                            )}
+
+
+                            {step===2 && (
+                                <div className="p-6 md:p-10 animate-slide-in">
+                                    <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                                        <div>
+                                            <h2 className="text-2xl font-black text-slate-800">Kehadiran & Status Kelas</h2>
+<div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+    {[
+        ['allowStraightRelief', 'Benarkan relief berturut'],
+        ['limitPK', 'Had PK maksimum 2'],
+        ['allowPemulihanEmergency', 'Benarkan Pemulihan jika terdesak'],
+        ['allowPullCoTeacher', 'Benarkan guru co-teaching ditarik']
+    ].map(([key, label]) => (
+        <label key={key} className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl cursor-pointer">
+            <input
+                type="checkbox"
+                className="accent-blue-600"
+                checked={settings[key]}
+                onChange={(e) => setSettings(s => ({ ...s, [key]: e.target.checked }))}
+            />
+            {label}
+        </label>
+    ))}
+</div>
+
+
+                                            <p className="text-sm font-bold text-slate-400 uppercase">Hari: <span className="text-blue-600">{day}</span></p>
+                                            {closedClasses.length > 0 && (
+                                                <div className="mt-2 text-[10px] font-bold text-red-600 bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 uppercase tracking-widest shadow-sm">
+                                                    {closedClasses.length} Program/Kelas Ditutup
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                            <button 
+                                                onClick={() => setCModal({ isOpen: true, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] })} 
+                                                className="px-4 py-3 bg-white text-red-600 font-bold rounded-2xl border-2 border-red-100 hover:bg-red-50 hover:border-red-200 text-sm flex items-center justify-center gap-2 transition-all shadow-sm"
+                                            >
+                                                <Icons.ShieldAlert className="w-4 h-4"/> Tutup Kelas (Aktiviti)
+                                            </button>
+                                            <div className="relative w-full md:w-64">
+                                                <Icons.Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Cari guru..."
+                                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 rounded-2xl text-sm outline-none border-2 border-slate-100 focus:border-blue-500 transition-all"
+                                                    value={search}
+                                                    onChange={(e)=>setSearch(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {teachers.filter(t=>t.name.toLowerCase().includes(search.toLowerCase())).map(t => {
+                                            const isA = absentTeachers.find(a=>a.id===t.id), isP = isA && !isA.isFull, clsCount = P.filter(p=>t.gridSchedule?.[day]?.[p]?.trim()).length;
+                                            return (
+                                                <div key={t.id} onClick={()=>toggleAbsent(t)} className={`p-4 rounded-3xl border-2 cursor-pointer transition-all ${isA&&isA.isFull?'border-red-500 bg-red-50':isP?'border-orange-500 bg-orange-50':'border-slate-100 bg-slate-50 hover:border-blue-200'}`}>
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-colors ${isA&&isA.isFull?'bg-red-500 text-white':isP?'bg-orange-500 text-white':'bg-white text-blue-600 border'}`}>{t.name[0]}</div>
+                                                        {isA&&isA.isFull && <Icons.CheckCircle className="w-6 h-6 text-red-500" />}{isP && <Icons.Clock className="w-6 h-6 text-orange-500" />}
+                                                    </div>
+                                                    <div className="font-bold text-sm leading-tight text-slate-800">{t.name}</div>
+                                                    <div className="flex justify-between items-center mt-3">
+                                                        <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${isP?'bg-orange-100 text-orange-700':clsCount>0?'bg-blue-100 text-blue-700':isA?'bg-red-100 text-red-700':'bg-white text-slate-400'}`}>{isP?`${isA.periods.length} Waktu Tiada`:clsCount>0?`${clsCount} Kelas`:isA?'Dikecualikan':'Tiada Kelas'}</span>
+                                                        <button onClick={(e)=>openPModal(e,t)} className="text-[10px] bg-white border px-3 py-1 rounded font-bold hover:bg-slate-100 text-slate-600 shadow-sm transition-colors">Set Masa</button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button onClick={()=>setStep(1)} className="px-6 py-4 font-bold text-slate-400 hover:text-slate-800 flex gap-2 transition-colors"><Icons.ArrowLeft className="w-4 h-4"/> Kembali</button>
+                                        <button onClick={()=>runAlgorithm(false)} disabled={!absentTeachers.length} className={`flex-1 py-4 rounded-2xl font-black text-sm uppercase shadow-lg flex justify-center items-center gap-2 transition-all ${absentTeachers.length?'bg-blue-600 text-white hover:bg-blue-700':'bg-slate-200 text-slate-400'}`}>Jana Relief ({absentTeachers.length}) <Icons.ChevronRight className="w-5 h-5"/></button>
+                                    </div>
+                                </div>
+                            )}
+
+
+                            {step===3 && (
+                                <div className="p-4 md:p-8 animate-zoom-in">
+                                    <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-6">
+                                        <div><h2 className="text-3xl font-black text-slate-800">Jadual Induk Sekolah</h2><p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Keseluruhan Waktu • Hari {day}</p></div>
+                                        <div className="flex gap-2 flex-wrap w-full lg:w-auto">
+                                            <button onClick={()=>runAlgorithm(true)} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold text-xs shadow-md"><Icons.RefreshCw className="w-4 h-4"/> Segarkan</button>
+                                            <button onClick={()=>mkPdf().save(`Relief_${date}.pdf`)} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold text-xs shadow-md"><Icons.Download className="w-4 h-4"/> Cetak PDF</button>
+
+
+                                            <button onClick={()=>cloudClick('drive')} disabled={loadingCloud.drive} className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-xs shadow-md text-white ${loadingCloud.drive?'bg-indigo-400':'bg-indigo-600'}`}>{loadingCloud.drive? '...' : <><Icons.CloudUpload className="w-4 h-4"/> Drive</>}</button>
+                                            <button onClick={()=>cloudClick('sheet')} disabled={loadingCloud.sheet} className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-xs shadow-md text-white ${loadingCloud.sheet?'bg-teal-400':'bg-teal-600'}`}>{loadingCloud.sheet? '...' : <><Icons.Database className="w-4 h-4"/> Rekod Sheet</>}</button>
+                                            <button onClick={()=>handleSimpan()} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-xs shadow-md"><Icons.CheckCircle className="w-4 h-4"/> Selesai</button>
+                                        </div>
+                                    </div>
+
+
+                                    <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-inner bg-slate-50 max-h-[70vh] custom-scrollbar">
+                                        <table className="w-full text-xs min-w-[900px] xl:min-w-full table-fixed border-collapse bg-white">
+                                            <thead className="sticky top-0 bg-slate-800 text-white z-20 shadow-md">
+                                                <tr>
+                                                    <th className="p-2 sticky left-0 bg-slate-900 z-30 text-left border-r border-slate-700 w-[14%] font-black uppercase tracking-widest text-[9px] md:text-[10px]">Nama Guru</th>
+                                                    {P.map(p => <th key={p} className="p-1.5 border-r border-slate-700 w-[7.8%] text-center"><div className="font-black text-sm">W{p}</div><div className="text-[7px] md:text-[8px] font-normal text-slate-300 tracking-tighter">{PT[p]}</div></th>)}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {teachers.map(t => {
+                                                    const isAbs = absentTeachers.find(a => a.id === t.id);
+                                                    
+                                                    const hasActivity = P.some(p => {
+                                                        return t.gridSchedule?.[day]?.[p] || 
+                                                               (isAbs && (isAbs.isFull || isAbs.periods.includes(p))) || 
+                                                               reliefList.find(r => parseInt(r.period) === p && r.substituteName === t.name) ||
+                                                               isBusyWithProgram(t.name, p); 
+                                                    });
+                                                    
+                                                    if(!hasActivity && !isAbs) return null; 
+
+
+                                                    return (
+                                                        <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                                                            <td className={`p-2 border-r border-slate-200 sticky left-0 z-10 font-bold text-slate-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${isAbs ? 'bg-red-50 text-red-800' : 'bg-white'}`} title={t.name}>
+                                                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
+                                                                    <span className="truncate text-[10px] sm:text-[11px] w-full">{t.name.split(' ').slice(0,3).join(' ')}</span>
+                                                                    <div className="flex gap-1 shrink-0">
+    {reliefList.filter(r => r.substituteName === t.name).length > 0 && (
+        <span className="text-[7px] bg-emerald-600 text-white px-1 py-0.5 rounded font-black">
+            R{reliefList.filter(r => r.substituteName === t.name).length}
+        </span>
+    )}
+    {isAbs && <span className="text-[7px] bg-red-600 text-white px-1 py-0.5 rounded font-black">CUTI</span>}
+</div>
+
+
+                                                                </div>
+                                                            </td>
+                                                            
+                                                            {P.map(p => {
+                                                                const cls = t.gridSchedule?.[day]?.[p];
+                                                                const isPartAbs = isAbs && (!isAbs.isFull ? isAbs.periods.includes(p) : true);
+                                                                const relRec = reliefList.find(r => r.absentName === t.name && parseInt(r.period) === p);
+                                                                const isSubbing = reliefList.find(r => r.substituteName === t.name && parseInt(r.period) === p);
+                                                                
+                                                                let bClass = cls ? getBaseClass(cls) : null;
+                                                                let isClosed = bClass && closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
+                                                                let prog = closedClasses.find(cc => p >= cc.start && p <= cc.end && cc.involved.includes(t.name));
+
+
+                                                                if (isPartAbs) {
+                                                                    if (relRec && !isClosed) {
+                                                                        return (
+                                                                            <td key={p} id={`relief-target-${relRec.id}`} className="bg-red-50 p-1 border-r border-slate-200 align-top relative group transition-all duration-300">
+                                                                                <div className="font-bold text-red-700 text-[8px] sm:text-[9px] mb-1 leading-tight text-center truncate px-1">{cls}</div>
+                                                                                <div className="flex flex-col gap-0.5">
+                                                                                    <select 
+                                                                                        className={`w-full editable-select outline-none rounded p-0.5 sm:p-1 cursor-pointer font-bold text-[8px] sm:text-[9px] border shadow-sm transition-colors ${relRec.substituteName.includes('TIADA')?'bg-red-100 text-red-800 border-red-200':relRec.substituteName.includes('GABUNG')?'bg-amber-100 text-amber-800 border-amber-200':'bg-white text-blue-700 border-slate-300'}`}
+                                                                                        value={relRec.substituteName}
+                                                                                        onChange={(e) => handleChangeSubstitute(relRec.id, e.target.value)}
+                                                                                        title="Klik untuk tukar guru ganti"
+                                                                                    >
+                                                                                        <option value={relRec.substituteName}>{relRec.substituteName.split(' ').slice(0,2).join(' ')}</option>
+                                                                                        <option disabled>---</option>
+                                                                                        <option value="TIADA GURU FREE">TIADA FREE</option>
+                                                                                        <option value="GABUNG (Tiada Relief)">GABUNG</option>
+                                                                                        {optSubs(p, relRec.substituteName).map(n => <option key={n} value={n}>{n.split(' ').slice(0,2).join(' ')}</option>)}
+                                                                                    </select>
+                                                                                </div>
+                                                                                <button onClick={() => removeReliefItem(relRec.id)} className="absolute top-0 right-0 p-1 bg-red-100 text-red-500 hover:bg-red-500 hover:text-white rounded-bl-lg rounded-tr-sm opacity-0 group-hover:opacity-100 transition-all shadow-sm" title="Padam Relief Ini">
+                                                                                    <Icons.Trash2 className="w-2.5 h-2.5" />
+                                                                                </button>
+                                                                            </td>
+                                                                        )
+                                                                    } else {
+                                                                        return <td key={p} className="bg-orange-50 text-orange-600 p-1 border-r border-slate-200 text-center align-middle"><div className="font-bold text-[8px] opacity-60 leading-tight">{cls||'CUTI'}<br/>{isClosed ? '(TUTUP)' : '(Abaikan)'}</div></td>
+                                                                    }
+                                                                } else if (prog) {
+                                                                    return (
+                                                                        <td key={p} className="bg-purple-100 text-purple-800 p-1 border-r border-purple-200 text-center align-middle shadow-inner">
+                                                                            <div className="font-black text-[8px] tracking-widest uppercase mb-0.5 opacity-60">PROGRAM</div>
+                                                                            <div className="font-bold text-[8px] leading-tight truncate px-1">{prog.reason}</div>
+                                                                        </td>
+                                                                    )
+                                                                } else if (isSubbing) {
+                                                                    return (
+                                                                        <td 
+                                                                            key={p} 
+                                                                            onClick={() => {
+                                                                                const el = document.getElementById(`relief-target-${isSubbing.id}`);
+                                                                                if (el) {
+                                                                                    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                                                                                    el.style.transition = 'all 0.3s';
+                                                                                    el.style.transform = 'scale(1.08)';
+                                                                                    el.style.boxShadow = '0 0 0 3px #2563eb';
+                                                                                    el.style.zIndex = '50';
+                                                                                    setTimeout(() => {
+                                                                                        el.style.transform = '';
+                                                                                        el.style.boxShadow = '';
+                                                                                        el.style.zIndex = '';
+                                                                                    }, 1800);
+                                                                                }
+                                                                            }}
+                                                                            className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1 border-r border-slate-200 text-center align-middle shadow-inner cursor-pointer transition-colors group relative"
+                                                                            title="Klik untuk lompat ke petak asal guru yang diganti"
+                                                                        >
+                                                                            <div className="font-bold text-[7px] sm:text-[8px] text-emerald-700 mb-0.5 truncate leading-tight border-b border-emerald-200 pb-0.5 group-hover:text-emerald-900">
+                                                                                {isSubbing.absentName.split(' ').slice(0, 2).join(' ')}
+                                                                            </div>
+                                                                            <div className="font-black text-[8px] sm:text-[9px] tracking-widest uppercase mb-0.5 mt-0.5 opacity-60">GANTI</div>
+                                                                            <div className="font-bold text-[9px] sm:text-[10px] leading-tight">{isSubbing.class}</div>
+                                                                            <div className="absolute bottom-0 right-0 bg-emerald-600 text-white text-[5px] px-0.5 rounded-tl opacity-0 group-hover:opacity-100 transition-opacity tracking-tighter">LIHAT</div>
+                                                                        </td>
+                                                                    )
+                                                                } else {
+                                                                    if (isClosed) {
+                                                                        return <td key={p} className="p-1 border-r border-slate-200 text-center align-middle bg-slate-100 text-slate-400 font-bold"><div className="text-[9px] truncate line-through opacity-50">{cls}</div><div className="text-[7px] text-red-500 uppercase font-black mt-0.5">Tutup</div></td>
+                                                                    }
+                                                                    return <td key={p} className={`p-1 border-r border-slate-200 text-center align-middle ${cls ? 'bg-slate-50 text-slate-600 font-bold' : 'bg-white'}`}><div className="text-[9px] truncate">{cls || ''}</div></td>
+                                                                }
+                                                            })}
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button onClick={()=>setStep(2)} className="w-full mt-6 py-4 font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">&larr; Ubah Kehadiran Guru</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+
+                    {isProcessing && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in"><div className="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-4"><div className="w-12 h-12 border-8 border-blue-600 border-t-transparent rounded-full animate-spin"></div><div className="font-black text-xs uppercase text-blue-900">Menyusun Data...</div></div></div>}
+
+
+                    {urlModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-zoom-in">
+                                <h3 className="font-black text-xl mb-2 flex items-center gap-2"><Icons.CloudUpload className="w-6 h-6 text-blue-600"/> Webhook Awan</h3>
+                                <p className="text-sm text-slate-500 mb-6">Sila masukkan URL Apps Script yang sah (diakhiri /exec) untuk fungsi simpanan Drive & Sheets.</p>
+                                <textarea className="w-full p-4 bg-slate-50 border border-slate-200 outline-none rounded-xl h-24 mb-4 text-sm font-medium focus:border-blue-500 transition-colors" placeholder="https://script.google.com/macros/s/.../exec" value={urlModal.temp} onChange={e=>setUrlModal({...urlModal, temp:e.target.value})}></textarea>
+                                <div className="flex justify-end gap-3"><button onClick={()=>setUrlModal({isOpen:false})} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">Batal</button><button onClick={submitUrl} className="px-6 py-3 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-md">Sahkan</button></div>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {pModal.isOpen && pModal.teacher && (
+                        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-zoom-in">
+                                <h3 className="font-black text-xl mb-4 text-slate-800">Set Masa Tiada <br/><span className="text-sm text-slate-500 font-bold">{pModal.teacher.name}</span></h3>
+                                
+                                <div className="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col gap-2">
+                                    <label className="text-xs font-bold text-blue-800 block">Pilih Pantas (Keluar & Masuk):</label>
+                                    
+                                    <div className="flex gap-2">
+                                        <select 
+                                            className="w-full p-2 rounded-lg border border-blue-200 text-[10px] font-bold text-slate-700 outline-none cursor-pointer shadow-sm bg-white"
+                                            value={pModal.out}
+                                            onChange={e => setPModal(m => ({...m, out: e.target.value}))}
+                                        >
+                                            <option value="">-- Waktu Keluar --</option>
+                                            {P.map(p => <option key={`o-${p}`} value={p}>Keluar W{p} ({PT[p].split('-')[0]})</option>)}
+                                        </select>
+                                        
+                                        <select 
+                                            className="w-full p-2 rounded-lg border border-blue-200 text-[10px] font-bold text-slate-700 outline-none cursor-pointer shadow-sm bg-white"
+                                            value={pModal.in}
+                                            onChange={e => setPModal(m => ({...m, in: e.target.value}))}
+                                        >
+                                            <option value="">-- Waktu Masuk --</option>
+                                            <option value="12">Tidak Masuk (Balik Terus)</option>
+                                            {P.map(p => <option key={`i-${p}`} value={p}>Masuk W{p} ({PT[p].split('-')[0]})</option>)}
+                                        </select>
+                                    </div>
+                                    
+                                    <button 
+                                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs mt-1 transition-colors shadow-sm"
+                                        onClick={() => {
+                                            if (!pModal.out && !pModal.in) return;
+                                            
+                                            let outP = parseInt(pModal.out) || 1; 
+                                            let inP = parseInt(pModal.in) || 12;  
+                                            
+                                            if (inP <= outP) {
+                                                alert("Waktu masuk semula mestilah SELEPAS waktu keluar.");
+                                                return;
+                                            }
+                                            
+                                            const affected = P.filter(p => p >= outP && p < inP);
+                                            setPModal(m => ({
+                                                ...m, 
+                                                selected: [...new Set([...m.selected, ...affected])],
+                                                out: '', 
+                                                in: '' 
+                                            }));
+                                        }}
+                                    >
+                                        Tandakan Waktu Tiada
+                                    </button>
+                                </div>
+
+
+                                <div className="max-h-[30vh] overflow-auto mb-6 pr-2 custom-scrollbar">
+                                    <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest">Atau Tandakan Secara Manual:</p>
+                                    {P.map(p => {
+                                        const cls = pModal.teacher.gridSchedule?.[day]?.[p]?.trim();
+                                        return (
+                                            <label key={p} className={`flex items-center p-3 border rounded-xl mb-2 cursor-pointer transition-all ${pModal.selected.includes(p)?'border-blue-500 bg-blue-50 shadow-sm':'hover:bg-slate-50'}`}>
+                                                <input type="checkbox" className="w-5 h-5 mr-4 cursor-pointer" checked={pModal.selected.includes(p)} onChange={e=>setPModal(m=>({...m, selected: e.target.checked?[...m.selected,p]:m.selected.filter(x=>x!==p)}))} />
+                                                <div>
+                                                    <div className="font-bold text-sm text-slate-800">Waktu {p} <span className="text-xs text-slate-400">({PT[p]})</span></div>
+                                                    <div className={`text-xs uppercase font-black ${cls ? 'text-blue-600' : 'text-slate-400'}`}>{cls || 'FREE'}</div>
+                                                </div>
+                                            </label>
+                                        )
+                                    })}
+                                </div>
+                                <div className="flex justify-end gap-3"><button onClick={()=>setPModal({isOpen:false})} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">Batal</button><button onClick={savePModal} className="px-6 py-3 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-md">Simpan Pilihan</button></div>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* MODAL KELAS TUTUP / PROGRAM */}
+                    {cModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-zoom-in flex flex-col max-h-[90vh]">
+                                <h3 className="font-black text-xl mb-2 text-slate-800 flex items-center gap-2">
+                                    <Icons.ShieldAlert className="w-6 h-6 text-red-600" /> Tutup Kelas & Program
+                                </h3>
+                                <p className="text-xs text-slate-500 mb-6 font-medium leading-relaxed">
+                                    Tetapkan kelas yang ditutup atau guru yang terlibat dengan program. <strong className="text-blue-600">Guru yang terlibat tidak akan dipanggil sbg guru ganti.</strong>
+                                </p>
+                                
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="flex flex-col gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 mb-6">
+                                        
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Sebab / Nama Program</label>
+                                                <select 
+                                                    className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-700 outline-none bg-white shadow-sm"
+                                                    value={cModal.reason}
+                                                    onChange={(e) => setCModal({...cModal, reason: e.target.value})}
+                                                >
+                                                    <option value="Program Sekolah">Program Sekolah</option>
+                                                    <option value="Lawatan">Lawatan</option>
+                                                    <option value="Program Panitia">Program Panitia</option>
+                                                    <option value="Sukan/Ko-Kurikulum">Sukan / Ko-Kurikulum</option>
+                                                    <option value="Cuti Peristiwa">Cuti Peristiwa</option>
+                                                    <option value="Lain-lain">Lain-lain</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Kelas Ditutup (Opsional)</label>
+                                                <select 
+                                                    className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-700 outline-none bg-white shadow-sm"
+                                                    value={cModal.clsName}
+                                                    onChange={(e) => setCModal({...cModal, clsName: e.target.value})}
+                                                >
+                                                    <option value="">-- Tiada Spesifik --</option>
+                                                    {classesToday.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex gap-3 items-center">
+                                            <div className="flex-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Waktu Mula</label>
+                                                <select className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold bg-white outline-none shadow-sm" value={cModal.start} onChange={(e) => setCModal({...cModal, start: e.target.value})}>
+                                                    {P.map(p => <option key={`s-${p}`} value={p}>W{p} ({PT[p].split('-')[0]})</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Waktu Tamat</label>
+                                                <select className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-bold bg-white outline-none shadow-sm" value={cModal.end} onChange={(e) => setCModal({...cModal, end: e.target.value})}>
+                                                    {P.map(p => <option key={`e-${p}`} value={p}>W{p} ({PT[p].split('-')[1]})</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+
+
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Guru Terlibat (Pilih jika ada)</label>
+                                            <div className="max-h-32 overflow-y-auto border border-slate-300 rounded-lg bg-white p-2 custom-scrollbar shadow-inner">
+                                                {teachers.map(t => (
+                                                    <label key={t.id} className="flex items-center gap-2 p-1.5 hover:bg-blue-50 rounded cursor-pointer transition-colors">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="w-4 h-4 cursor-pointer accent-blue-600" 
+                                                            checked={cModal.involved.includes(t.name)}
+                                                            onChange={() => toggleTeacherInvolved(t.name)}
+                                                        />
+                                                        <span className="text-xs font-bold text-slate-700">{t.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            <p className="text-[9px] text-slate-500 mt-1 italic">*{cModal.involved.length} guru dipilih.</p>
+                                        </div>
+
+
+                                        <button onClick={addClosedClass} className="w-full py-3 bg-slate-800 text-white font-black uppercase tracking-widest text-xs rounded-xl mt-2 hover:bg-black transition-colors shadow-md">
+                                            Daftar Program / Kelas
+                                        </button>
+                                    </div>
+
+
+                                    <div>
+                                        <label className="text-xs font-black text-slate-400 uppercase mb-3 block">Senarai Berdaftar Hari Ini:</label>
+                                        {closedClasses.length === 0 ? (
+                                            <div className="text-center text-slate-400 text-xs italic py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">Tiada program direkodkan setakat ini.</div>
+                                        ) : (
+                                            closedClasses.map(c => (
+                                                <div key={c.id} className="flex justify-between items-center p-3 border border-red-200 bg-red-50 rounded-xl mb-2 shadow-sm">
+                                                    <div>
+                                                        <div className="font-bold text-red-800 text-sm leading-tight">{c.class === 'PROGRAM UMUM' ? c.reason : `${c.class} - ${c.reason}`}</div>
+                                                        <div className="text-[10px] text-red-500 font-bold mt-0.5">Waktu {c.start} hingga {c.end} • {c.involved.length} Guru</div>
+                                                    </div>
+                                                    <button onClick={() => removeClosedClass(c.id)} className="text-red-400 hover:text-red-700 bg-white p-2 rounded-lg shadow-sm transition-colors"><Icons.Trash2 className="w-4 h-4"/></button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                                    <button onClick={()=>setCModal({isOpen:false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: []})} className="px-6 py-3 font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl transition-colors w-full">Tutup Tetingkap</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* MODAL ANALISA GURU */}
+                    {showStats && (
+                        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-zoom-in overflow-hidden">
+                                <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                                    <div>
+                                        <h3 className="font-black text-slate-800 text-xl flex items-center gap-2"><Icons.BarChart className="w-6 h-6 text-purple-600"/> Analisa Kehadiran & Relief</h3>
+                                        <p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-widest">Rekod Keseluruhan (Sepanjang Masa)</p>
+                                    </div>
+                                    <button onClick={() => setShowStats(false)} className="p-2 hover:bg-slate-200 bg-white border border-slate-200 rounded-full transition-colors"><Icons.X className="w-5 h-5"/></button>
+                                </div>
+                                
+                                <div className="flex-1 overflow-auto custom-scrollbar p-6">
+                                    <table className="w-full text-sm border-collapse">
+                                        <thead className="bg-slate-100 text-slate-600">
+                                            <tr>
+                                                <th className="p-4 text-left font-black rounded-tl-xl">Nama Guru</th>
+                                                <th className="p-4 text-center font-black text-purple-700">Terima Relief (Ganti Orang)</th>
+                                                <th className="p-4 text-center font-black text-red-600 rounded-tr-xl">Tidak Hadir (Orang Ganti Dia)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {teachers.map(t => (
+                                                <tr key={t.id} className="hover:bg-slate-50">
+                                                    <td className="p-4 font-bold text-slate-700">{t.name}</td>
+                                                    <td className="p-4 text-center">
+                                                        <span className={`px-3 py-1 rounded-full font-black ${t.totalRelief > 0 ? 'bg-purple-100 text-purple-700' : 'text-slate-400'}`}>
+                                                            {t.totalRelief} kali
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <span className={`px-3 py-1 rounded-full font-black ${t.totalAbsent > 0 ? 'bg-red-100 text-red-600' : 'text-slate-400'}`}>
+                                                            {t.totalAbsent} kali
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
