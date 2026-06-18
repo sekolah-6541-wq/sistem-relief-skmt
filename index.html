@@ -1169,14 +1169,14 @@ const fetchHist = async () => {
                                                             })}
                                                         </tr>
 // ... Sambungan daripada hujung kod jadual step === 3 anda ...
-                                    ); 
+                                  ); // <-- Semicolon di sini dah dibuang
                                 })}
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            )}
-        </div>
+                    </div> {/* 1. Penutup kotak tatal jadual */}
+                </div> {/* 2. Penutup kad putih step 3 */}
+            )} {/* 3. Penutup logik {step === 3 && ...} */}
+        </div> {/* 4. Penutup untuk container utama halaman / App */}
 
         {/* ========================================================================== */}
         {/* MODAL & OVERLAY COMPONENT */}
