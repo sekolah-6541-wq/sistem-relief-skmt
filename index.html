@@ -61,7 +61,7 @@
 
 
         const TEACHERS = [
-            "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NURLEEZA BINTI ZAKARIA",
+            "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NEEZA BINTI ZAKARIA",
             "MOHD FAISAL BIN HARUN", "ABD GHAFAR BIN MAT RIPPIN", "ABDUL RAHMAN BIN MOHD DIN",
             "AINI LIZA BINTI LIMAT", "AMIDAH BINTI SULONG", "ANIDA BINTI SULONG", "ANUAR BIN JUSOH",
             "AZMI BADIUZZAMAN BIN HASHIM", "AZMI BIN ABDULLAH", "AZUWANI BINTI AWANG",
@@ -133,7 +133,7 @@
             if (!name) return false;
             const n = name.toUpperCase();
             return n.includes('NOR AZIAH BINTI MUSTAFA') || 
-                   n.includes('UMMY NURLEEZA BINTI ZAKARIA') || 
+                   n.includes('UMMY NEEZA BINTI ZAKARIA') || 
                    n.includes('MOHD FAISAL BIN HARUN');
         };
         
@@ -218,7 +218,7 @@
             
             const [pModal, setPModal] = useState({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
             const [cModal, setCModal] = useState({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] }); 
-            const [appUrl, setAppUrl] = useState('https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec');
+            const [app, setApp] = useState('https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec');
             const [urlModal, setUrlModal] = useState({ isOpen: false, action: null, temp: '' });
             const [loadingCloud, setLoadingCloud] = useState({ drive: false, sheet: false });
             const [showMaster, setShowMaster] = useState(false);
