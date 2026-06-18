@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">useEffect
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Guru Ganti SKMT</title>
     
@@ -923,12 +923,35 @@ if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
                                     <button onClick={()=>setStep(2)} className="px-12 py-5 bg-slate-800 text-white rounded-3xl font-black tracking-widest uppercase hover:bg-black transition-all mb-8 shadow-xl">Pilih Guru Tiada &rarr;</button>}
 
 
-                                    {records.length > 0 && (
-                                        <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
-                                            <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2"><Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu</h3>
+                                    {(() => {
+                                        // 1. Kira julat tarikh Ahad - Khamis untuk minggu ini
+                                        const hariIni = new Date();
+                                        const hariSemasa = hariIni.getDay(); // 0 = Ahad, 1 = Isnin, ... 6 = Sabtu
+    
+                                        const ahad = new Date(hariIni);
+                                        ahad.setDate(hariIni.getDate() - hariSemasa);
+    
+                                        const khamis = new Date(ahad);
+                                        khamis.setDate(ahad.getDate() + 4);
+    
+                                        const formatTarikh = (d) => d.toISOString().split('T')[0];
+                                        const tarikhMula = formatTarikh(ahad);
+                                        const tarikhTamat = formatTarikh(khamis);
+
+                                        // 2. Tapis rekod yang berada dalam julat minggu ini sahaja
+                                        const rekodMingguIni = records.filter(r => r.date >= tarikhMula && r.date <= tarikhTamat);
+
+                                        if (rekodMingguIni.length === 0) return null;
+
+                                        return (
+                                            <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
+                                                <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
+                                                    <Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu (Minggu Ini)
+                                            </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {records.map(r => (
+                                                {rekodMingguIni.map(r => (
                                                     <div key={r.id} onClick={()=>{
+    
     setDate(r.date);
     setDay(r.day);
     setAbsentTeachers(hydrateAbsentTeachers(r.absentTeachers));
