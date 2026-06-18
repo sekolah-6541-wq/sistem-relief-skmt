@@ -232,11 +232,6 @@
                     if (sRec) setRecords(JSON.parse(sRec));
                 } catch(e) { console.error("Ralat load rekod:", e); }
 
-
-                const sUrl = localStorage.getItem('skmt_url');
-                if (sUrl) setAppUrl(sUrl);
-
-
                 let tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
                 setDate(tmr.toISOString().split('T')[0]);
                 const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
@@ -547,7 +542,9 @@ const removeClosedClass = (id) => {
                             penA += (a.count||0) * 500 + totA;
                             penB += (b.count||0) * 500 + totB;
                             
-                            return penA - penB;
+                            let skorA = totA + penA;
+                            let skorB = totB + penB;
+                            return skorA - skorB; // Mengutamakan guru yang mempunyai jumlah skor/beban terendah
                         });
                         
                         const sub = free[0];
