@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-
     <style>
         body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -31,11 +30,9 @@
 <body>
     <div id="root"></div>
 
-
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
         const SHEET_ID = '1txoWim24edQiD2e3OC52Cxt2rmVoZttxhok3Y0b1FUk';
-
 
         const Icons = {
             BookOpen: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
@@ -58,7 +55,6 @@
             Grid: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>,
             BarChart: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         };
-
 
         const TEACHERS = [
             "ROHAIZA BINTI ABDULLAH", "NOR AZIAH BINTI MUSTAFA", "UMMY NURLEEZA BINTI ZAKARIA",
@@ -83,15 +79,20 @@
         
         const P = [1,2,3,4,5,6,7,8,9,10,11];
         const DAYS = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis'];
+        const SHEET_DAYS = [
+            { label: 'Ahad', sheet: 'AHAD' },
+            { label: 'Isnin', sheet: 'ISNIN' },
+            { label: 'Selasa', sheet: 'SELASA' },
+            { label: 'Rabu', sheet: 'RABU' },
+            { label: 'Khamis', sheet: 'KHAMIS' }
+        ];
         const PT = {1:'07:45-08:15', 2:'08:15-08:45', 3:'08:45-09:15', 4:'09:15-09:45', 5:'09:45-10:15', 6:'10:15-10:45', 7:'10:45-11:15', 8:'11:15-11:45', 9:'11:45-12:15', 10:'12:15-12:45', 11:'12:45-13:15'};
-
 
         const emptyGrid = () => ({Ahad:{}, Isnin:{}, Selasa:{}, Rabu:{}, Khamis:{}});
         
         const initData = () => TEACHERS.map((n, i) => ({ 
             id: i+1, name: n, count: 0, absentCount: 0, totalRelief: 0, totalAbsent: 0, gridSchedule: emptyGrid() 
         }));
-
 
         const parseCSV = (str) => {
             let arr = [], quote = false;
@@ -109,7 +110,6 @@
             return arr;
         };
 
-
         const fetchCSV = async (sheetName) => {
             const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`);
             if (!res.ok) return null;
@@ -117,7 +117,6 @@
             if (text.trim().startsWith('<!DOCTYPE')) throw new Error('Sheet Private. Tukar Share: Anyone with link.');
             return parseCSV(text);
         };
-
 
         const isPraClass = (cName) => {
             if (!cName) return false;
@@ -150,7 +149,6 @@
             return false;
         };
 
-
         const isPemulihanTeacher = (teacher) => {
             if (!teacher) return false;
             for (let d of DAYS) {
@@ -163,7 +161,6 @@
             }
             return false;
         };
-
 
         const getBaseClass = (cls) => {
             if (!cls) return "";
@@ -180,10 +177,8 @@
             return n;
         };
 
-
         const checkRestRule = (grid, p, allowStraightRelief = true) => {
     if (allowStraightRelief) return false;
-
 
     const hasDuty = (period) => grid[period] && grid[period].trim() !== '';
     if (p > 1 && p < 11 && hasDuty(p - 1) && hasDuty(p + 1)) return true;
@@ -192,16 +187,13 @@
     return false;
 };
 
-
         const sameBaseClass = (a, b) => {
-              return getBaseClass(a) === getBaseClass(b);
+    	  return getBaseClass(a) === getBaseClass(b);
         };
-
 
         const shortName = (name) => {
                  return name ? name.split(' ').slice(0, 2).join(' ') : '';
         };
-
 
         const App = () => {
             const [step, setStep] = useState(1);
@@ -215,6 +207,8 @@
             const [msg, setMsg] = useState('');
             const [teachers, setTeachers] = useState([]);
             const [records, setRecords] = useState([]);
+	    const [tempTeachers, setTempTeachers] = useState([]);
+	    const [tempTeacherName, setTempTeacherName] = useState('');
             
             const [pModal, setPModal] = useState({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
             const [cModal, setCModal] = useState({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] }); 
@@ -224,14 +218,9 @@
             const [showMaster, setShowMaster] = useState(false);
             const [showStats, setShowStats] = useState(false);
 const [settings, setSettings] = useState({
-    allowStraightRelief: true,
-    limitPK: true,
-    allowPemulihanEmergency: false,
+    emergencyMode: false,
     allowPullCoTeacher: true
 });
-
-
-
 
 
 
@@ -244,10 +233,14 @@ const [settings, setSettings] = useState({
                     if (sRec) setRecords(JSON.parse(sRec));
                 } catch(e) { console.error("Ralat load rekod:", e); }
 
-
                 const sUrl = localStorage.getItem('skmt_url');
                 if (sUrl) setAppUrl(sUrl);
+		const savedTemp =
+    		localStorage.getItem('skmt_temp_teachers');
 
+		if (savedTemp) {
+  		  setTempTeachers(JSON.parse(savedTemp));
+		}
 
                 let tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
                 setDate(tmr.toISOString().split('T')[0]);
@@ -255,7 +248,9 @@ const [settings, setSettings] = useState({
                 setDay(dayNames[tmr.getDay()]);
             }, []);
 
-
+	    const allTeachers = useMemo(() => {
+		return [...teachers, ...tempTeachers];
+	    }, [teachers, tempTeachers]);
             const classesToday = useMemo(() => {
                 const clsSet = new Set();
                 teachers.forEach(t => {
@@ -269,13 +264,26 @@ const [settings, setSettings] = useState({
                 return Array.from(clsSet).sort();
             }, [teachers, day]);
 
+            const weekRecords = useMemo(() => {
+                if (!date) return [];
+                const selected = new Date(date);
+                const sunday = new Date(selected);
+                sunday.setDate(selected.getDate() - selected.getDay());
+
+                return DAYS.map((dName, i) => {
+                    const d = new Date(sunday);
+                    d.setDate(sunday.getDate() + i);
+                    const dStr = d.toISOString().split('T')[0];
+                    return { date: dStr, day: dName, record: records.find(r => r.date === dStr) };
+                });
+            }, [records, date]);
 
             const handleDate = (e) => {
                 setDate(e.target.value);
                 if (e.target.value) setDay(['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'][new Date(e.target.value).getDay()]);
                 else setDay('');
             };
-        const hydrateAbsentTeachers = (list) => {
+	const hydrateAbsentTeachers = (list) => {
     return list.map(a => {
         const master = teachers.find(t => t.id === a.id) || teachers.find(t => t.name === a.name);
         return {
@@ -288,7 +296,6 @@ const [settings, setSettings] = useState({
     });
 };
 
-
             const toggleAbsent = (t) => {
                 if (absentTeachers.find(a => a.id === t.id)) {
                     setAbsentTeachers(absentTeachers.filter(a => a.id !== t.id));
@@ -297,14 +304,12 @@ const [settings, setSettings] = useState({
                 }
             };
 
-
             const openPModal = (e, t) => {
                 e.stopPropagation();
                 const existing = absentTeachers.find(a => a.id === t.id);
                 let per = (existing && !existing.isFull) ? existing.periods : [];
                 setPModal({ isOpen: true, teacher: t, selected: per, out: '', in: '' });
             };
-
 
             const savePModal = () => {
                 const ext = absentTeachers.filter(a => a.id !== pModal.teacher.id);
@@ -316,7 +321,6 @@ const [settings, setSettings] = useState({
                 setPModal({ isOpen: false, teacher: null, selected: [], out: '', in: '' });
             };
 
-
             const toggleTeacherInvolved = (tName) => {
                 setCModal(m => ({
                     ...m,
@@ -325,7 +329,6 @@ const [settings, setSettings] = useState({
                         : [...m.involved, tName]
                 }));
             };
-
 
             const addClosedClass = () => {
                 if (!cModal.clsName && cModal.involved.length === 0) { 
@@ -348,11 +351,9 @@ const [settings, setSettings] = useState({
                 setCModal({ isOpen: false, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] });
             };
 
-
             const removeClosedClass = (id) => {
                 setClosedClasses(closedClasses.filter(c => c.id !== id));
             };
-
 
             const isBusyWithProgram = (tName, p) => {
                 return closedClasses.some(cc => 
@@ -360,11 +361,22 @@ const [settings, setSettings] = useState({
                 );
             };
 
+            const isGB = (name) => name?.toUpperCase().includes('ROHAIZA BINTI ABDULLAH');
+            const isNoorAiniPemulihan = (name) => name?.toUpperCase().includes('NOOR AINI BINTI SULAIMAN');
+            const isUbkOrPss = (name) => {
+                const n = name?.toUpperCase() || '';
+                return n.includes('RAHIMAWATI BINTI ABDUL RAHIM@FUZI') ||
+                       n.includes('NOOR MASTURA BINTI SETAPA');
+            };
+            const isPemulihanClosed = (p) => closedClasses.some(cc =>
+                sameBaseClass(cc.class, 'PEMULIHAN') &&
+                p >= cc.start &&
+                p <= cc.end
+            );
 
             const runAlgorithm = (isRecalc = false) => {
                 if (!isRecalc && absentTeachers.length === 0) return;
                 setIsProcessing(true);
-
 
                 let cands = teachers.filter(t => {
                     const isAbs = absentTeachers.find(a => a.id === t.id);
@@ -403,11 +415,9 @@ const [settings, setSettings] = useState({
                     };
                 });
 
-
                 const nRel = [];
 const handled = {};
 let pToCover = [];
-
 
 const existingReliefMap = {};
 reliefList.forEach(r => {
@@ -416,15 +426,12 @@ reliefList.forEach(r => {
 });
 
 
-
-
                 if (isRecalc) {
                     pToCover = reliefList.map(r => ({
                         abs: absentTeachers.find(a => a.name === r.absentName) || { id: Date.now(), name: r.absentName },
                         p: parseInt(r.period), cls: r.class, base: getBaseClass(r.class), time: r.time
                     })).filter(item => {
                         return !closedClasses.some(cc => sameBaseClass(item.base, cc.class)
-
 
  && item.p >= cc.start && item.p <= cc.end);
                     });
@@ -438,27 +445,32 @@ let cls = (abs.gridSchedule || masterAbs?.gridSchedule)?.[day]?.[p];
                                 
                                 let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
 
-
                                 if (isClosed) return;
                                 
                                 if (isPemulihanClass(cls)) return;
                                 if (isPraClass(cls) && p !== 5) return;
+
+                                const availableCoTeacher = teachers.find(t => {
+                                    if (t.id === abs.id) return false;
+                                    if (!sameBaseClass(t.gridSchedule?.[day]?.[p], bClass)) return false;
+                                    const isCoAbs = absentTeachers.find(a => a.id === t.id);
+                                    return !(isCoAbs && (isCoAbs.isFull || isCoAbs.periods.includes(p)));
+                                });
+                                if (availableCoTeacher) return;
+
                                 pToCover.push({ abs, p, cls, base: bClass, time: PT[p] });
                             }
                         });
                     });
                 }
 
-
                 pToCover.sort((a, b) => a.p - b.p);
-
 
                 pToCover.forEach(i => {
                     const key = `${i.p}_${i.base}`;
                     if (handled[key]) return; 
 const existingKey = `${i.abs.name}_${i.p}_${i.base}`;
 const existingRelief = existingReliefMap[existingKey];
-
 
 if (!isRecalc && existingRelief) {
     nRel.push({
@@ -469,27 +481,22 @@ if (!isRecalc && existingRelief) {
         time: i.time
     });
 
-
     const keptSub = cands.find(c => c.name === existingRelief.substituteName);
     if (keptSub) {
         keptSub.relCount++;
         keptSub.grid[i.p] = "R";
     }
 
-
     handled[key] = true;
     return;
 }
 
 
-
-
 const co = cands.filter(t => {
-            if (t.id === i.abs.id) return false;
+ 	   if (t.id === i.abs.id) return false;
     if (isBusyWithProgram(t.name, i.p)) return false;
     return sameBaseClass(t.grid?.[i.p], i.base);
 });
-
 
 if (co.length > 0 && !settings.allowPullCoTeacher) {
     nRel.push({
@@ -505,20 +512,17 @@ if (co.length > 0 && !settings.allowPullCoTeacher) {
     return;
 }
 
-
                     let free = cands.filter(c => {
                        if (c.grid[i.p]?.trim()) {
-                  if (!settings.allowPullCoTeacher) return false;
-                    if (c.grid[i.p] === "PROGRAM") return false;
+  		if (!settings.allowPullCoTeacher) return false;
+   		 if (c.grid[i.p] === "PROGRAM") return false;
 
-
-                    const busyBase = getBaseClass(c.grid[i.p]);
-                    const hasCoTeacherCover = cands.some(other => {
-                        if (other.id === c.id) return false;
+   		 const busyBase = getBaseClass(c.grid[i.p]);
+  		  const hasCoTeacherCover = cands.some(other => {
+ 		       if (other.id === c.id) return false;
         if (other.grid?.[i.p] === "PROGRAM") return false;
         return sameBaseClass(other.grid?.[i.p], busyBase);
-            });
-
+    	});
 
     if (!hasCoTeacherCover) return false;
 }
@@ -526,12 +530,11 @@ if (co.length > 0 && !settings.allowPullCoTeacher) {
                         const isAbs = absentTeachers.find(a => a.id === c.id);
                         if (isAbs && !isAbs.isFull && isAbs.periods.includes(i.p)) return false; 
                         
-                        if (checkRestRule(c.grid, i.p, settings.allowStraightRelief)) return false;
-                        
-                        // SYARAT KETAT: GB dan PK
-                        if (c.name.includes('ROHAIZA')) return false; 
-                        if (settings.limitPK && IS_PK(c.name) && c.relCount >= 2) return false;
-                if (!settings.allowPemulihanEmergency && c.isPemulihan) return false;
+                        if (isGB(c.name)) return false;
+                        if (IS_PK(c.name) && c.relCount >= 1) return false;
+                        if (isUbkOrPss(c.name) && c.relCount >= 2) return false;
+                        if (isNoorAiniPemulihan(c.name) && !isPemulihanClosed(i.p)) return false;
+                        if (!settings.emergencyMode && !IS_PK(c.name) && !isUbkOrPss(c.name) && c.relCount >= 1) return false;
                         
                         return true;
                     });
@@ -541,13 +544,12 @@ if (co.length > 0 && !settings.allowPullCoTeacher) {
                             let penA = 0, penB = 0;
                             let totA = a.clsCount + a.relCount, totB = b.clsCount + b.relCount;
 
-
     if (a.grid[i.p]?.trim() && a.grid[i.p] !== "PROGRAM") penA += 2500;
     if (b.grid[i.p]?.trim() && b.grid[i.p] !== "PROGRAM") penB += 2500;
-                            if (a.isPemulihan) penA += settings.allowPemulihanEmergency ? 10000 : 999999;
-if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
-
-
+                            if (isNoorAiniPemulihan(a.name) && !isPemulihanClosed(i.p)) penA += 999999;
+                            if (isNoorAiniPemulihan(b.name) && !isPemulihanClosed(i.p)) penB += 999999;
+                            if (a.relCount >= 1 && !settings.emergencyMode && !IS_PK(a.name) && !isUbkOrPss(a.name)) penA += 999999;
+                            if (b.relCount >= 1 && !settings.emergencyMode && !IS_PK(b.name) && !isUbkOrPss(b.name)) penB += 999999;
 
 
                             
@@ -588,13 +590,10 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
                     }
                 });
 
-
                 setTimeout(() => { setReliefList(nRel); setIsProcessing(false); setStep(3); }, 800);
             };
 
-
             const sRelief = useMemo(() => [...reliefList].sort((a, b) => a.pNum - b.pNum), [reliefList]);
-
 
             const handleChangeSubstitute = (id, newSubName) => {
                 setReliefList(prev => prev.map(item => 
@@ -606,39 +605,41 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
                  setReliefList(reliefList.filter(item => item.id !== idToRemove));
             };
 
-
             const fetchSched = async () => {
                 setIsProcessing(true);
                 try {
                     let map = {}; teachers.forEach(t => map[t.name] = { ...t, gridSchedule: emptyGrid() });
                     let ok = 0;
-                    for (let d of DAYS) {
-                        const rows = await fetchCSV(d);
+                    for (let d of SHEET_DAYS) {
+                        const rows = await fetchCSV(d.sheet);
                         if (!rows) continue; ok++;
                         let start = 1; for(let i=0; i<Math.min(5, rows.length); i++) if(rows[i][0]?.toUpperCase().includes('NAMA')){start=i+1;break;}
                         for(let i=start; i<rows.length; i++) {
                             const n = rows[i][0]?.trim().toUpperCase();
                             if(!n) continue;
                             if(!map[n]) map[n] = { id: Date.now()+Math.random(), name:n, count:0, absentCount:0, totalRelief:0, totalAbsent:0, gridSchedule:emptyGrid() };
-                            for(let p=1; p<=11; p++) if(rows[i][p]) map[n].gridSchedule[d][p] = rows[i][p].trim();
+                            for(let p=1; p<=11; p++) if(rows[i][p]) map[n].gridSchedule[d.label][p] = rows[i][p].trim();
                         }
                     }
                     if(!ok) throw new Error("Tiada data Ahad-Khamis");
                     const arr = Object.values(map).sort((a,b) => a.name.localeCompare(b.name));
                     setTeachers(arr); localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(arr));
                     setMsg('Jadual dikemas kini.'); setTimeout(()=>setMsg(''),4000);
+                    setIsProcessing(false);
+                    return arr;
                 } catch(e) { alert("Ralat: " + e.message); }
                 setIsProcessing(false);
+                return null;
             };
 
-
-            const fetchHist = async () => {
+            const fetchHist = async (baseTeachers = null) => {
                 setIsProcessing(true);
                 try {
                     const rows = await fetchCSV('DATA');
                     if(!rows) throw new Error("Tab DATA tidak dijumpai.");
                     
-                    let map = {}; teachers.forEach(t => map[t.name] = { ...t, count: 0, absentCount: 0, totalRelief: 0, totalAbsent: 0 });
+                    const teacherBase = baseTeachers || teachers;
+                    let map = {}; teacherBase.forEach(t => map[t.name] = { ...t, gridSchedule: t.gridSchedule || emptyGrid(), count: 0, absentCount: 0, totalRelief: 0, totalAbsent: 0 });
                     let dLimit = new Date(); dLimit.setDate(dLimit.getDate()-7);
                     let f = 0;
                     
@@ -681,7 +682,7 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
                             });
                             
                             if (!groupedRecords[dStr].absMap[absN]) {
-                                const tObj = teachers.find(t => t.name === absN);
+                                const tObj = teacherBase.find(t => t.name === absN);
                                 groupedRecords[dStr].absMap[absN] = {
                                     id: tObj ? tObj.id : Date.now() + Math.random(),
                                     name: absN,
@@ -715,10 +716,24 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
                     }
                     
                     setMsg(`Rekod & Sejarah ditarik. (${f} ganti minggu ini)`); setTimeout(()=>setMsg(''),4500);
+                    setIsProcessing(false);
+                    return arr;
                 } catch(e) { alert("Ralat Refresh Rekod DATA: " + e.message); }
                 setIsProcessing(false);
+                return null;
             };
 
+            const refreshAllData = async () => {
+                setIsProcessing(true);
+                try {
+                    const scheduleTeachers = await fetchSched();
+                    await fetchHist(scheduleTeachers || teachers);
+                    setMsg('Semua data berjaya disegarkan.'); setTimeout(()=>setMsg(''),4500);
+                } catch(e) {
+                    alert("Ralat Segarkan Data: " + e.message);
+                }
+                setIsProcessing(false);
+            };
 
             const mkPdf = () => {
                 const doc = new window.jspdf.jsPDF();
@@ -738,7 +753,6 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
                 return doc;
             };
 
-
             const doCloud = async (act, u) => {
                 const url = u || appUrl;
                 setLoadingCloud(p => ({...p, [act]: true}));
@@ -757,7 +771,6 @@ if (b.isPemulihan) penB += settings.allowPemulihanEmergency ? 10000 : 999999;
         records: sRelief.map(r => [date, day, r.absentName, r.substituteName, r.class, r.period])
     };
 
-
 if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk direkod.");
                     
                     const res = await fetch(url, { method: 'POST', body: JSON.stringify(pay) });
@@ -766,7 +779,6 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
                 } catch(e) { alert("Gagal: " + e.message); if(e.message.includes('fetch')) { setAppUrl(''); localStorage.removeItem('skmt_url'); } }
                 setLoadingCloud(p => ({...p, [act]: false}));
             };
-
 
             const cloudClick = (act) => appUrl ? doCloud(act, appUrl) : setUrlModal({ isOpen: true, action: act, temp: 'https://script.google.com/macros/s/AKfycbx8FqXHdWFYsW88JsmUWM-aF0LNhwW48E5Pm597L0U4iHV61lmXovAhBNCDqoxT4WOe/exec' });
             
@@ -777,19 +789,15 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
                 doCloud(urlModal.action, urlModal.temp);
             };
 
-
      const handleSimpan = () => {
     const oldRec = records.find(r => r.date === date);
-
 
     const upd = teachers.map(t => {
         const newRelCount = sRelief.filter(r => r.substituteName === t.name).length;
         const oldRelCount = oldRec ? oldRec.reliefList.filter(r => r.substituteName === t.name).length : 0;
 
-
         const newAbsCount = absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0;
         const oldAbsCount = oldRec ? oldRec.absentTeachers.find(a => a.id === t.id || a.name === t.name) ? 1 : 0 : 0;
-
 
         return { 
             ...t, 
@@ -799,13 +807,11 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
         };
     });
 
-
     setTeachers(upd);
     localStorage.setItem('skmt_teachers_master_v8', JSON.stringify(upd));
     
     const nRec = { id: oldRec?.id || date + '-' + Date.now(), date, day, reliefList: sRelief, absentTeachers };
     const uRec = [nRec, ...records.filter(r => r.date !== date)].slice(0, 10);
-
 
     setRecords(uRec); 
     localStorage.setItem('skmt_records_master_v8', JSON.stringify(uRec)); 
@@ -819,7 +825,6 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
         setClosedClasses([]);
     }, 3000);
 };
-
 
             const optSubs = (pNum, cName) => {
                 return teachers
@@ -845,7 +850,6 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
                                 let bClass = getBaseClass(cls);
                                 let isClosed = closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
 
-
                                 if (isClosed) tGrid[p] = ""; 
                             }
                             if (isBusyWithProgram(t.name, p)) {
@@ -857,46 +861,79 @@ if(act==='sheet' && sRelief.length===0) throw new Error("Tiada senarai untuk dir
     if (!settings.allowPullCoTeacher) return false;
     if (tGrid[pNum] === "PROGRAM") return false;
 
-
     const busyBase = getBaseClass(tGrid[pNum]);
     const hasCoTeacherCover = teachers.some(other => {
         if (other.id === t.id) return false;
-
 
         const isOtherAbs = absentTeachers.find(a => a.id === other.id);
         if (isOtherAbs && (isOtherAbs.isFull || isOtherAbs.periods.includes(pNum))) return false;
         if (isBusyWithProgram(other.name, pNum)) return false;
         if (isPraTeacher(other)) return false;
 
-
         return sameBaseClass(other.gridSchedule?.[day]?.[pNum], busyBase);
     });
-
 
     if (!hasCoTeacherCover) return false;
 }
 
-
                         
                         const currentReliefCount = reliefList.filter(r => r.substituteName === t.name).length;
                         
-                        // KETAT: GB dan PK tak tersenarai
-                        if (t.name.includes('ROHAIZA')) return false;
-                        if (settings.limitPK && IS_PK(t.name) && currentReliefCount >= 2) return false;
-if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
-
+                        if (isGB(t.name)) return false;
+                        if (IS_PK(t.name) && currentReliefCount >= 1) return false;
+                        if (isUbkOrPss(t.name) && currentReliefCount >= 2) return false;
+                        if (isNoorAiniPemulihan(t.name) && !isPemulihanClosed(pNum)) return false;
+                        if (!settings.emergencyMode && !IS_PK(t.name) && !isUbkOrPss(t.name) && currentReliefCount >= 1) return false;
 
                         if (reliefList.some(r=>r.pNum===pNum && r.substituteName===t.name)) return false;
                         
                         reliefList.filter(r=>r.substituteName===t.name).forEach(r => tGrid[r.pNum] = "R");
-                        return !checkRestRule(tGrid, pNum, settings.allowStraightRelief);
+                        return true;
                     })
                     .map(t=>t.name).sort();
             };
 
+	    const addTempTeacher = () => {
+
+    if (!tempTeacherName.trim()) return;
+
+    const newTeacher = {
+        id: 'temp-' + Date.now(),
+        name: tempTeacherName.trim().toUpperCase(),
+        count: 0,
+        absentCount: 0,
+        totalRelief: 0,
+        totalAbsent: 0,
+        isTemp: true,
+        gridSchedule: emptyGrid()
+    };
+
+    const updated = [...tempTeachers, newTeacher];
+
+    setTempTeachers(updated);
+
+    localStorage.setItem(
+        'skmt_temp_teachers',
+        JSON.stringify(updated)
+    );
+
+    setTempTeacherName('');
+};
+
+const removeTempTeacher = (id) => {
+
+    const updated =
+        tempTeachers.filter(t => t.id !== id);
+
+    setTempTeachers(updated);
+
+    localStorage.setItem(
+        'skmt_temp_teachers',
+        JSON.stringify(updated)
+    );
+};
 
             const clsBtn = "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm shadow-md transition-all";
-
 
             return (
                 <div className="min-h-screen p-2 md:p-6 font-sans">
@@ -918,7 +955,6 @@ if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
                             </div>
                         </header>
 
-
                         <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
                             {step===1 && (
                                 <div className="p-8 md:p-12 animate-fade-in text-center flex flex-col items-center">
@@ -929,37 +965,38 @@ if (!settings.allowPemulihanEmergency && isPemulihanTeacher(t)) return false;
                                     {(day==='Jumaat' || day==='Sabtu') ? <div className="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-sm mb-8"><Icons.X className="w-4 h-4 inline mr-1"/>Hari Kelepasan</div> :
                                     <button onClick={()=>setStep(2)} className="px-12 py-5 bg-slate-800 text-white rounded-3xl font-black tracking-widest uppercase hover:bg-black transition-all mb-8 shadow-xl">Pilih Guru Tiada &rarr;</button>}
 
-
-                                    {records.length > 0 && (
-                                        <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
-                                            <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2"><Icons.History className="w-5 h-5 text-slate-400" /> Rekod Janaan Terdahulu</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {records.map(r => (
-                                                    <div key={r.id} onClick={()=>{
-    setDate(r.date);
-    setDay(r.day);
-    setAbsentTeachers(hydrateAbsentTeachers(r.absentTeachers));
-    setReliefList(r.reliefList);
-    setStep(3);
-}}
-className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl hover:border-blue-300 cursor-pointer group transition-colors">
-                                                        <div><div className="font-black text-slate-800">{r.date} <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">{r.day}</span></div><div className="text-xs text-slate-500 font-medium mt-1">{r.absentTeachers.length} Cikgu Tiada • {r.reliefList.length} Diganti</div></div>
-                                                        <div className="bg-white p-2 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors"><Icons.ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" /></div>
+                                    <div className="w-full text-left border-t border-slate-100 pt-8 mt-6">
+                                        <h3 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2"><Icons.History className="w-5 h-5 text-slate-400" /> Rekod Minggu Ini</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                                            {weekRecords.map(w => (
+                                                <div
+                                                    key={w.date}
+                                                    onClick={() => {
+                                                        if (!w.record) return;
+                                                        setDate(w.record.date);
+                                                        setDay(w.record.day);
+                                                        setAbsentTeachers(hydrateAbsentTeachers(w.record.absentTeachers));
+                                                        setReliefList(w.record.reliefList);
+                                                        setStep(3);
+                                                    }}
+                                                    className={`p-4 rounded-2xl border transition-colors ${w.record ? 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100' : 'bg-slate-50 border-slate-200 opacity-60'}`}
+                                                >
+                                                    <div className="font-black text-slate-800 text-sm">{w.day}</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 mt-1">{w.date}</div>
+                                                    <div className={`text-[10px] font-black mt-3 uppercase ${w.record ? 'text-blue-700' : 'text-slate-400'}`}>
+                                                        {w.record ? `${w.record.reliefList.length} Relief` : 'Belum Dijana'}
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    )}
-
+                                    </div>
 
                                     <div className="mt-12 pt-8 border-t border-slate-100 flex flex-wrap gap-4 w-full justify-center">
                                         <button onClick={()=>setShowStats(true)} className="flex items-center gap-2 px-6 py-4 bg-purple-50 text-purple-700 font-bold rounded-2xl hover:bg-purple-100 text-sm shadow-sm"><Icons.BarChart className="w-5 h-5"/> Analisa Guru</button>
-                                        <button onClick={fetchSched} className="flex items-center gap-2 px-6 py-4 bg-blue-50 text-blue-700 font-bold rounded-2xl hover:bg-blue-100 text-sm shadow-sm"><Icons.CloudSync className="w-5 h-5"/> Kemaskini Jadual</button>
-                                        <button onClick={fetchHist} className="flex items-center gap-2 px-6 py-4 bg-teal-50 text-teal-700 font-bold rounded-2xl hover:bg-teal-100 text-sm shadow-sm"><Icons.Database className="w-5 h-5"/> Refresh Rekod Lepas</button>
+                                        <button onClick={refreshAllData} className="flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 text-sm shadow-md"><Icons.CloudSync className="w-5 h-5"/> Segarkan Data</button>
                                     </div>
                                 </div>
                             )}
-
 
                             {step===2 && (
                                 <div className="p-6 md:p-10 animate-slide-in">
@@ -968,9 +1005,7 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                             <h2 className="text-2xl font-black text-slate-800">Kehadiran & Status Kelas</h2>
 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
     {[
-        ['allowStraightRelief', 'Benarkan relief berturut'],
-        ['limitPK', 'Had PK maksimum 2'],
-        ['allowPemulihanEmergency', 'Benarkan Pemulihan jika terdesak'],
+        ['emergencyMode', 'Mod darurat'],
         ['allowPullCoTeacher', 'Benarkan guru co-teaching ditarik']
     ].map(([key, label]) => (
         <label key={key} className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl cursor-pointer">
@@ -985,7 +1020,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
     ))}
 </div>
 
-
                                             <p className="text-sm font-bold text-slate-400 uppercase">Hari: <span className="text-blue-600">{day}</span></p>
                                             {closedClasses.length > 0 && (
                                                 <div className="mt-2 text-[10px] font-bold text-red-600 bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 uppercase tracking-widest shadow-sm">
@@ -993,7 +1027,35 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                        
+					<div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4">
+
+    <div className="font-bold text-blue-800 mb-2">
+        Guru Sementara / Praktikum
+    </div>
+
+    <div className="flex gap-2">
+
+        <input
+            value={tempTeacherName}
+            onChange={(e)=>
+                setTempTeacherName(e.target.value)
+            }
+            placeholder="Nama guru"
+            className="flex-1 px-3 py-2 border rounded-xl"
+        />
+
+        <button
+            onClick={addTempTeacher}
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl"
+        >
+            Tambah
+        </button>
+
+    </div>
+
+</div>
+					<div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
                                             <button 
                                                 onClick={() => setCModal({ isOpen: true, clsName: '', start: '1', end: '11', reason: 'Program Sekolah', involved: [] })} 
                                                 className="px-4 py-3 bg-white text-red-600 font-bold rounded-2xl border-2 border-red-100 hover:bg-red-50 hover:border-red-200 text-sm flex items-center justify-center gap-2 transition-all shadow-sm"
@@ -1014,7 +1076,10 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                     </div>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {teachers.filter(t=>t.name.toLowerCase().includes(search.toLowerCase())).map(t => {
+                                        allTeachers.filter(t =>
+					    t.name.toLowerCase().includes(search.toLowerCase())
+					)
+					.map(t => {
                                             const isA = absentTeachers.find(a=>a.id===t.id), isP = isA && !isA.isFull, clsCount = P.filter(p=>t.gridSchedule?.[day]?.[p]?.trim()).length;
                                             return (
                                                 <div key={t.id} onClick={()=>toggleAbsent(t)} className={`p-4 rounded-3xl border-2 cursor-pointer transition-all ${isA&&isA.isFull?'border-red-500 bg-red-50':isP?'border-orange-500 bg-orange-50':'border-slate-100 bg-slate-50 hover:border-blue-200'}`}>
@@ -1022,7 +1087,33 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-colors ${isA&&isA.isFull?'bg-red-500 text-white':isP?'bg-orange-500 text-white':'bg-white text-blue-600 border'}`}>{t.name[0]}</div>
                                                         {isA&&isA.isFull && <Icons.CheckCircle className="w-6 h-6 text-red-500" />}{isP && <Icons.Clock className="w-6 h-6 text-orange-500" />}
                                                     </div>
-                                                    <div className="font-bold text-sm leading-tight text-slate-800">{t.name}</div>
+                                                    <div>
+
+    <div className="font-bold text-sm leading-tight text-slate-800">
+        {t.name}
+    </div>
+
+    {t.isTemp && (
+        <div className="mt-1 flex gap-2">
+
+            <span className="text-[9px] px-2 py-1 rounded bg-green-100 text-green-700 font-black">
+                SEMENTARA
+            </span>
+
+            <button
+                onClick={(e)=>{
+                    e.stopPropagation();
+                    removeTempTeacher(t.id);
+                }}
+                className="text-[9px] px-2 py-1 rounded bg-red-100 text-red-700 font-black"
+            >
+                PADAM
+            </button>
+
+        </div>
+    )}
+
+</div>
                                                     <div className="flex justify-between items-center mt-3">
                                                         <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${isP?'bg-orange-100 text-orange-700':clsCount>0?'bg-blue-100 text-blue-700':isA?'bg-red-100 text-red-700':'bg-white text-slate-400'}`}>{isP?`${isA.periods.length} Waktu Tiada`:clsCount>0?`${clsCount} Kelas`:isA?'Dikecualikan':'Tiada Kelas'}</span>
                                                         <button onClick={(e)=>openPModal(e,t)} className="text-[10px] bg-white border px-3 py-1 rounded font-bold hover:bg-slate-100 text-slate-600 shadow-sm transition-colors">Set Masa</button>
@@ -1038,7 +1129,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                 </div>
                             )}
 
-
                             {step===3 && (
                                 <div className="p-4 md:p-8 animate-zoom-in">
                                     <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-6">
@@ -1047,13 +1137,11 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                             <button onClick={()=>runAlgorithm(true)} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold text-xs shadow-md"><Icons.RefreshCw className="w-4 h-4"/> Segarkan</button>
                                             <button onClick={()=>mkPdf().save(`Relief_${date}.pdf`)} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-black font-bold text-xs shadow-md"><Icons.Download className="w-4 h-4"/> Cetak PDF</button>
 
-
                                             <button onClick={()=>cloudClick('drive')} disabled={loadingCloud.drive} className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-xs shadow-md text-white ${loadingCloud.drive?'bg-indigo-400':'bg-indigo-600'}`}>{loadingCloud.drive? '...' : <><Icons.CloudUpload className="w-4 h-4"/> Drive</>}</button>
                                             <button onClick={()=>cloudClick('sheet')} disabled={loadingCloud.sheet} className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-xs shadow-md text-white ${loadingCloud.sheet?'bg-teal-400':'bg-teal-600'}`}>{loadingCloud.sheet? '...' : <><Icons.Database className="w-4 h-4"/> Rekod Sheet</>}</button>
                                             <button onClick={()=>handleSimpan()} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-xs shadow-md"><Icons.CheckCircle className="w-4 h-4"/> Selesai</button>
                                         </div>
                                     </div>
-
 
                                     <div className="overflow-x-auto border border-slate-200 rounded-2xl shadow-inner bg-slate-50 max-h-[70vh] custom-scrollbar">
                                         <table className="w-full text-xs min-w-[900px] xl:min-w-full table-fixed border-collapse bg-white">
@@ -1064,18 +1152,8 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
-                                                {teachers.map(t => {
+                                                {allTeachers.map(t => {
                                                     const isAbs = absentTeachers.find(a => a.id === t.id);
-                                                    
-                                                    const hasActivity = P.some(p => {
-                                                        return t.gridSchedule?.[day]?.[p] || 
-                                                               (isAbs && (isAbs.isFull || isAbs.periods.includes(p))) || 
-                                                               reliefList.find(r => parseInt(r.period) === p && r.substituteName === t.name) ||
-                                                               isBusyWithProgram(t.name, p); 
-                                                    });
-                                                    
-                                                    if(!hasActivity && !isAbs) return null; 
-
 
                                                     return (
                                                         <tr key={t.id} className="hover:bg-slate-50 transition-colors">
@@ -1091,7 +1169,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
     {isAbs && <span className="text-[7px] bg-red-600 text-white px-1 py-0.5 rounded font-black">CUTI</span>}
 </div>
 
-
                                                                 </div>
                                                             </td>
                                                             
@@ -1104,7 +1181,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                                                 let bClass = cls ? getBaseClass(cls) : null;
                                                                 let isClosed = bClass && closedClasses.some(cc => sameBaseClass(bClass, cc.class) && p >= cc.start && p <= cc.end);
                                                                 let prog = closedClasses.find(cc => p >= cc.start && p <= cc.end && cc.involved.includes(t.name));
-
 
                                                                 if (isPartAbs) {
                                                                     if (relRec && !isClosed) {
@@ -1189,9 +1265,7 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                         </div>
                     </div>
 
-
                     {isProcessing && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in"><div className="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-4"><div className="w-12 h-12 border-8 border-blue-600 border-t-transparent rounded-full animate-spin"></div><div className="font-black text-xs uppercase text-blue-900">Menyusun Data...</div></div></div>}
-
 
                     {urlModal.isOpen && (
                         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -1203,7 +1277,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                             </div>
                         </div>
                     )}
-
 
                     {pModal.isOpen && pModal.teacher && (
                         <div className="fixed inset-0 bg-slate-900/70 z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -1260,7 +1333,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                     </button>
                                 </div>
 
-
                                 <div className="max-h-[30vh] overflow-auto mb-6 pr-2 custom-scrollbar">
                                     <p className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest">Atau Tandakan Secara Manual:</p>
                                     {P.map(p => {
@@ -1280,7 +1352,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                             </div>
                         </div>
                     )}
-
 
                     {/* MODAL KELAS TUTUP / PROGRAM */}
                     {cModal.isOpen && (
@@ -1340,7 +1411,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                             </div>
                                         </div>
 
-
                                         <div>
                                             <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Guru Terlibat (Pilih jika ada)</label>
                                             <div className="max-h-32 overflow-y-auto border border-slate-300 rounded-lg bg-white p-2 custom-scrollbar shadow-inner">
@@ -1359,12 +1429,10 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                                             <p className="text-[9px] text-slate-500 mt-1 italic">*{cModal.involved.length} guru dipilih.</p>
                                         </div>
 
-
                                         <button onClick={addClosedClass} className="w-full py-3 bg-slate-800 text-white font-black uppercase tracking-widest text-xs rounded-xl mt-2 hover:bg-black transition-colors shadow-md">
                                             Daftar Program / Kelas
                                         </button>
                                     </div>
-
 
                                     <div>
                                         <label className="text-xs font-black text-slate-400 uppercase mb-3 block">Senarai Berdaftar Hari Ini:</label>
@@ -1390,7 +1458,6 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
                             </div>
                         </div>
                     )}
-
 
                     {/* MODAL ANALISA GURU */}
                     {showStats && (
@@ -1439,9 +1506,10 @@ className="flex justify-between p-4 bg-slate-50 border border-slate-200 rounded-
             );
         };
 
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
 </html>
+
+
